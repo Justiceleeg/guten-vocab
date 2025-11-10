@@ -47,5 +47,16 @@ def init_db():
     Initialize database - create all tables.
     Call this after importing all models.
     """
+    # Import all models to ensure they're registered with Base
+    from app.models import (
+        Student,
+        VocabularyWord,
+        StudentVocabulary,
+        Book,
+        BookVocabulary,
+        StudentRecommendation,
+        ClassRecommendation,
+    )
+    
     Base.metadata.create_all(bind=engine)
 
