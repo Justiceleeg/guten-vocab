@@ -2,8 +2,12 @@
 FastAPI application entry point for Vocabulary Recommendation Engine.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+
+from app.database import get_db
 
 app = FastAPI(
     title="Vocabulary Recommendation Engine API",
@@ -32,9 +36,20 @@ async def root():
 
 
 @app.get("/health")
-async def health_check():
+async def health_check(db: Session = Depends(get_db)):
     """Health check endpoint for monitoring."""
-    return {"status": "healthy"}
+    try:
+        # Test database connection
+        db.execute(text("SELECT 1"))
+        return {
+            "status": "healthy",
+            "database": "connected",
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Database connection failed: {str(e)}",
+        )
 
 
 if __name__ == "__main__":
