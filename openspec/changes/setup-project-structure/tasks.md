@@ -12,10 +12,9 @@
   - [x] Create `backend/app/api/` for API routes
   - [x] Create `backend/app/services/` for business logic
 - [x] Create `frontend/` directory for Next.js application
-  - [x] Create `frontend/src/` subdirectory
-  - [x] Create `frontend/src/app/` for Next.js app router pages
-  - [x] Create `frontend/src/components/` for React components
-  - [x] Create `frontend/src/lib/` for utilities
+  - [x] Create `frontend/app/` for Next.js app router pages
+  - [x] Create `frontend/components/` for React components
+  - [x] Create `frontend/lib/` for utilities
 - [x] Create `scripts/` directory for data generation & seeding scripts
   - [x] Create placeholder files: `generate_vocab_lists.py`, `generate_mock_data.py`, `seed_books.py`, `analyze_students.py`, `run_all.py`
 - [x] Create `data/` directory for static data files

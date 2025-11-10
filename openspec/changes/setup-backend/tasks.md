@@ -34,16 +34,16 @@
 - [x] Create `.env.example` file in `backend/` directory
 - [x] Add `DATABASE_URL=postgresql://user:password@localhost:5432/vocab_engine` to `.env.example`
 - [x] Add `OPENAI_API_KEY=your_key_here` to `.env.example`
-- [ ] Create `.env` file (for local development, not committed to Git)
-- [ ] Document environment variables in README
+- [x] Create `.env` file (for local development, not committed to Git)
+- [x] Document environment variables in README
 
 ### 1.6 Basic FastAPI Application
 - [x] Create `backend/app/main.py` with FastAPI app instance
 - [x] Add health check endpoint: `GET /health` or `GET /`
 - [x] Add CORS middleware configuration (for frontend integration)
 - [x] Add basic error handling
-- [ ] Test that FastAPI app runs: `uvicorn app.main:app --reload`
-- [ ] Verify health check endpoint responds correctly
+- [x] Test that FastAPI app runs: `uvicorn app.main:app --reload`
+- [x] Verify health check endpoint responds correctly
 
 **Acceptance Criteria:**
 - ✅ Virtual environment created and activated
