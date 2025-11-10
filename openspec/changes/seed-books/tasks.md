@@ -1,0 +1,109 @@
+## 1. Book Seeding and Vocabulary Extraction
+
+### 1.1 Create Book Selection Script (Phase 1)
+- [ ] Create `scripts/seed_books.py`
+- [ ] Load pgcorpus metadata CSV:
+  - [ ] Parse CSV file
+  - [ ] Handle encoding issues
+  - [ ] Extract relevant columns (gutenberg_id, title, author, category, language, download_count)
+- [ ] Filter books by category:
+  - [ ] Filter for "Children's Literature" OR "Children's Fiction"
+  - [ ] Handle case variations
+  - [ ] Log filtering decisions
+- [ ] Filter by language:
+  - [ ] Filter for English only
+  - [ ] Handle language code variations
+- [ ] Filter by availability:
+  - [ ] Check if counts file exists for each book
+  - [ ] Skip books without counts files
+- [ ] Calculate reading level:
+  - [ ] Use textstat library (Flesch-Kincaid)
+  - [ ] Load sample text from book (may need to download sample)
+  - [ ] Calculate reading level score
+  - [ ] Handle books where reading level cannot be calculated
+- [ ] Filter to reading level 5.0-9.0:
+  - [ ] Apply reading level filter
+  - [ ] Log filtered books
+- [ ] Sort by download count (popularity):
+  - [ ] Sort descending by download_count
+  - [ ] Handle missing download counts
+- [ ] Select top 100 books:
+  - [ ] Take first 100 books after sorting
+  - [ ] Verify we have 100 books
+- [ ] Save selected books list:
+  - [ ] Create `data/books/` directory if needed
+  - [ ] Save to `/data/books/selected_books.json`
+  - [ ] Include: gutenberg_id, title, author, reading_level, download_count
+  - [ ] Format JSON nicely for readability
+
+### 1.2 Extend Script for Vocabulary Extraction (Phase 2)
+- [ ] Load selected books from JSON (or use in-memory list)
+- [ ] For each selected book:
+  - [ ] Load pre-computed counts file from pgcorpus:
+    - [ ] Locate counts file for gutenberg_id
+    - [ ] Parse counts file format
+    - [ ] Handle missing or corrupted files
+  - [ ] Apply spaCy lemmatization:
+    - [ ] Load spaCy English model
+    - [ ] Lemmatize each word in counts
+    - [ ] Create lemmatized word -> count mapping
+  - [ ] Filter to vocabulary_words table:
+    - [ ] Query vocabulary_words from database
+    - [ ] Match lemmatized words from book to vocabulary words
+    - [ ] Only keep words that exist in our vocabulary list
+  - [ ] Calculate total word count:
+    - [ ] Sum all word occurrences in book
+    - [ ] Store in book record
+  - [ ] Insert into `books` table:
+    - [ ] Use SQLAlchemy Book model
+    - [ ] Set title, author, gutenberg_id, reading_level, total_words
+    - [ ] Handle database errors
+  - [ ] Insert word counts into `book_vocabulary` table:
+    - [ ] For each matched vocabulary word
+    - [ ] Insert BookVocabulary record with occurrence_count
+    - [ ] Use batch inserts for performance
+    - [ ] Handle foreign key constraints
+- [ ] Add progress tracking:
+  - [ ] Display "Processing book X of 100"
+  - [ ] Show current book title
+  - [ ] Estimate time remaining
+- [ ] Handle errors gracefully:
+  - [ ] Try-except around each book processing
+  - [ ] Log errors for failed books
+  - [ ] Continue processing remaining books
+  - [ ] Track which books failed and why
+- [ ] Print summary statistics:
+  - [ ] Total books processed successfully
+  - [ ] Total books failed
+  - [ ] Average vocabulary coverage per book
+  - [ ] Books with highest vocabulary coverage
+  - [ ] Books with lowest vocabulary coverage
+  - [ ] Total book_vocabulary records created
+
+### 1.3 Test Book Seeding
+- [ ] Run `python scripts/seed_books.py`
+- [ ] Verify Phase 1 (book selection):
+  - [ ] Check `selected_books.json` was created
+  - [ ] Verify 100 books selected
+  - [ ] Verify all books have required fields
+  - [ ] Check reading levels are in range 5.0-9.0
+- [ ] Verify Phase 2 (vocabulary extraction):
+  - [ ] Query: `SELECT COUNT(*) FROM books;` (should be ~100)
+  - [ ] Query: `SELECT COUNT(*) FROM book_vocabulary;` (should be ~10,000-50,000)
+  - [ ] Query top 10 books by vocab coverage
+  - [ ] Verify book_vocabulary records have correct foreign keys
+  - [ ] Check that vocabulary matches are correct
+- [ ] Verify error handling:
+  - [ ] Script continues if individual books fail
+  - [ ] Errors are logged appropriately
+- [ ] Add idempotency (can run multiple times safely)
+
+**Acceptance Criteria:**
+- ✅ Book selection script filters and selects 100 appropriate books
+- ✅ Selected books saved to `data/books/selected_books.json`
+- ✅ All 100 books inserted into `books` table
+- ✅ Book vocabulary counts extracted and inserted into `book_vocabulary` table
+- ✅ Script handles errors gracefully
+- ✅ Summary statistics printed
+- ✅ Script is idempotent (can run multiple times)
+
