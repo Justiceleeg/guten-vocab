@@ -212,7 +212,6 @@ CREATE INDEX idx_class_recs_score ON class_recommendations(match_score DESC);
   - Load all 4 JSON files
   - Insert words into `vocabulary_words` table with grade levels
   - Handle duplicates (some words may appear in multiple grades - keep highest grade)
-  - Add lemmatization using spaCy (store lemmatized form)
   - Print summary: "Loaded X words across grades 5-8"
 
 #### 2.3 Book Dataset - pgcorpus Setup
