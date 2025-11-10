@@ -54,7 +54,7 @@ An AI-powered system that analyzes middle school student language use (classroom
 - **Version Control**: Git
 - **Package Management**: 
   - Python: pip (requirements.txt)
-  - Node: npm (package.json)
+  - Node: pnpm (package.json) - using pnpm for frontend
 - **Environment Variables**: python-dotenv
 
 ## Project Conventions
@@ -96,7 +96,7 @@ backend/app/
 
 **Frontend Structure:**
 ```
-frontend/src/
+frontend/
 ├── app/             # Next.js app router pages
 ├── components/      # React components
 │   ├── ui/          # shadcn/ui base components

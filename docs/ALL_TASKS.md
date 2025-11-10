@@ -44,13 +44,12 @@ Build an AI-powered vocabulary recommendation system for middle school students 
   │   │   └── main.py
   │   ├── requirements.txt
   │   └── .env.example
-  ├── frontend/             # Next.js application
-  │   ├── src/
-  │   │   ├── app/
-  │   │   ├── components/
-  │   │   └── lib/
-  │   ├── package.json
-  │   └── .env.example
+├── frontend/             # Next.js application
+│   ├── app/              # Next.js app router pages
+│   ├── components/       # React components
+│   ├── lib/              # Utilities (API client, types)
+│   ├── package.json
+│   └── .env.example
   ├── scripts/              # Data generation & seeding scripts
   │   ├── generate_vocab_lists.py
   │   ├── generate_mock_data.py
@@ -845,7 +844,7 @@ CREATE INDEX idx_class_recs_score ON class_recommendations(match_score DESC);
 - [ ] Connect GitHub repository
 - [ ] Configure build settings:
   - Root directory: `frontend/`
-  - Build command: `npm run build`
+  - Build command: `pnpm build`
   - Output directory: `.next`
 - [ ] Set environment variable:
   - `NEXT_PUBLIC_API_URL` (Railway backend URL)

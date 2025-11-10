@@ -50,10 +50,9 @@ This system helps teachers:
 │   ├── requirements.txt
 │   └── .env.example
 ├── frontend/             # Next.js application
-│   ├── src/
-│   │   ├── app/          # Next.js app router pages
-│   │   ├── components/   # React components
-│   │   └── lib/          # Utilities (API client, types)
+│   ├── app/              # Next.js app router pages
+│   ├── components/       # React components
+│   ├── lib/              # Utilities (API client, types)
 │   ├── package.json
 │   └── .env.example
 ├── scripts/              # Data generation & seeding scripts
@@ -122,7 +121,7 @@ This system helps teachers:
 3. **Set up Frontend**
    ```bash
    cd frontend
-   npm install
+   pnpm install
    cp .env.example .env.local
    # Edit .env.local with your NEXT_PUBLIC_API_URL
    ```
@@ -141,8 +140,62 @@ This system helps teachers:
    uvicorn app.main:app --reload
 
    # Frontend (in frontend/ directory)
-   npm run dev
+   pnpm dev
    ```
+
+## Environment Variables
+
+### Backend Environment Variables
+
+Create a `.env` file in the `backend/` directory (copy from `backend/.env.example`):
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+**Required Variables:**
+
+- **`DATABASE_URL`** (required)
+  - PostgreSQL connection string
+  - Format: `postgresql://username:password@host:port/database_name`
+  - Example: `postgresql://postgres:password@localhost:5432/vocab_engine`
+  - Used for: Database connection in FastAPI application
+
+- **`OPENAI_API_KEY`** (required)
+  - OpenAI API key for GPT-4 access
+  - Get from: https://platform.openai.com/api-keys
+  - Used for: Generating mock student data and analyzing vocabulary usage correctness
+  - Note: Only used during offline data generation, not at runtime
+
+**Example `.env` file:**
+```env
+DATABASE_URL=postgresql://postgres:password@localhost:5432/vocab_engine
+OPENAI_API_KEY=sk-your-openai-api-key-here
+```
+
+### Frontend Environment Variables
+
+Create a `.env.local` file in the `frontend/` directory:
+
+**Required Variables:**
+
+- **`NEXT_PUBLIC_API_URL`** (required)
+  - Backend API URL
+  - Format: `http://localhost:8000` (local) or `https://your-backend.railway.app` (production)
+  - Used for: API client to connect to FastAPI backend
+  - Note: `NEXT_PUBLIC_` prefix makes it available in the browser
+
+**Example `.env.local` file:**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+### Security Notes
+
+- **Never commit `.env` or `.env.local` files** - they are in `.gitignore`
+- Use `.env.example` files as templates
+- For production, set environment variables in your deployment platform (Railway, Vercel)
+- Keep API keys secure and rotate them regularly
 
 ## Key Constraints
 

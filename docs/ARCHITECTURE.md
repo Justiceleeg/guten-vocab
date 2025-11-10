@@ -610,7 +610,7 @@ Response: 200 OK
 ### Frontend Component Structure
 
 ```
-src/
+frontend/
 ├── app/
 │   ├── layout.tsx              # Root layout with nav
 │   ├── page.tsx                # Home (redirects to /class)
