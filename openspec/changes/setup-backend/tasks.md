@@ -8,10 +8,10 @@
 
 ### 1.2 Set Up Virtual Environment
 - [x] Create Python virtual environment: `python -m venv venv` (or `python3 -m venv venv`)
-- [ ] Activate virtual environment:
+- [x] Activate virtual environment:
   - macOS/Linux: `source venv/bin/activate`
   - Windows: `venv\Scripts\activate`
-- [ ] Verify virtual environment is active (prompt should show `(venv)`)
+- [x] Verify virtual environment is active (prompt should show `(venv)`)
 - [x] Update `.gitignore` to exclude `venv/` directory (already done in project structure)
 
 ### 1.3 Install Dependencies
@@ -24,11 +24,11 @@
 - [x] Add textstat (for reading level calculation) to `requirements.txt`
 - [x] Add requests to `requirements.txt`
 - [x] Add uvicorn[standard] to `requirements.txt` (for running FastAPI)
-- [ ] Run `pip install -r requirements.txt` to install all dependencies (with venv activated)
+- [x] Run `pip install -r requirements.txt` to install all dependencies (with venv activated)
 
 ### 1.4 Download spaCy Model
-- [ ] Run `python -m spacy download en_core_web_sm` to download English model
-- [ ] Verify model is installed correctly
+- [x] Run `python -m spacy download en_core_web_sm` to download English model
+- [x] Verify model is installed correctly
 
 ### 1.5 Environment Configuration
 - [x] Create `.env.example` file in `backend/` directory
