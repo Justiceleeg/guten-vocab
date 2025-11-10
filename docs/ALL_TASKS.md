@@ -209,11 +209,12 @@ CREATE INDEX idx_class_recs_score ON class_recommendations(match_score DESC);
   - Source: https://www.vocabulary.com/lists/lists-by-grade
 
 #### 2.2 Vocabulary Seed Script
-- [ ] Create `scripts/seed_vocabulary.py`:
+- [x] Create `scripts/seed_vocabulary.py`:
   - Load all 4 JSON files
   - Insert words into `vocabulary_words` table with grade levels
   - Handle duplicates (some words may appear in multiple grades - keep highest grade)
   - Print summary: "Loaded X words across grades 5-8"
+  - ✅ Tested: 525 words loaded successfully
 
 #### 2.3 Book Dataset - pgcorpus Setup
 - [ ] Research and document pgcorpus/gutenberg setup:

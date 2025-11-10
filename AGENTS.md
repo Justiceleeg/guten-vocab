@@ -17,4 +17,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
-do not commit or push to git unless given explicit approval / permission.
+**Git Operations:**
+- Do NOT commit to git unless explicitly told to do so
+- Do NOT push to git unless explicitly told to do so
+- Wait for explicit permission before each commit/push operation
