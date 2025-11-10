@@ -100,8 +100,15 @@ This system helps teachers:
 2. **Set up Backend**
    ```bash
    cd backend
+   # Create and activate virtual environment
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   
+   # Install dependencies
    pip install -r requirements.txt
    python -m spacy download en_core_web_sm
+   
+   # Set up environment variables
    cp .env.example .env
    # Edit .env with your DATABASE_URL and OPENAI_API_KEY
    ```
