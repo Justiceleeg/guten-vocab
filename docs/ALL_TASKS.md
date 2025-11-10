@@ -201,11 +201,12 @@ CREATE INDEX idx_class_recs_score ON class_recommendations(match_score DESC);
 ### Tasks:
 
 #### 2.1 Vocabulary Lists Setup
-- [ ] Copy vocabulary JSON files to `/data/vocab/`:
+- [x] Copy vocabulary JSON files to `/data/vocab/`:
   - 5th_grade.json (150 words)
   - 6th_grade.json (125 words)
   - 7th_grade.json (125 words)
   - 8th_grade.json (125 words)
+  - Source: https://www.vocabulary.com/lists/lists-by-grade
 
 #### 2.2 Vocabulary Seed Script
 - [ ] Create `scripts/seed_vocabulary.py`:

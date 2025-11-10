@@ -1,14 +1,14 @@
 ## 1. Vocabulary Data Seeding
 
 ### 1.1 Vocabulary Lists Setup
-- [ ] Create `data/vocab/` directory if it doesn't exist
-- [ ] Copy vocabulary JSON files to `/data/vocab/`:
-  - [ ] 5th_grade.json (150 words)
-  - [ ] 6th_grade.json (125 words)
-  - [ ] 7th_grade.json (125 words)
-  - [ ] 8th_grade.json (125 words)
+- [x] Create `data/vocab/` directory if it doesn't exist - Directory exists
+- [x] Copy vocabulary JSON files to `/data/vocab/`:
+  - [x] 5th_grade.json (150 words) - File added
+  - [x] 6th_grade.json (125 words) - File added
+  - [x] 7th_grade.json (125 words) - File added
+  - [x] 8th_grade.json (125 words) - File added
 - [ ] Verify JSON files are valid and contain expected word lists
-- [ ] Document source of vocabulary lists
+- [x] Document source of vocabulary lists - Documented in data/vocab/README.md (source: https://www.vocabulary.com/lists/lists-by-grade)
 
 ### 1.2 Create Vocabulary Seed Script
 - [ ] Create `scripts/seed_vocabulary.py`
