@@ -3,5 +3,31 @@
 		"activityBar.background": "#1C330D",
 		"titleBar.activeBackground": "#274813",
 		"titleBar.activeForeground": "#F8FCF5"
-	}
+	},
+	// Python virtual environment configuration
+	"python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/bin/python",
+	"python.terminal.activateEnvironment": true,
+	"python.terminal.activateEnvInCurrentTerminal": true,
+	// Terminal configuration - auto-activate venv when opening terminal
+	"terminal.integrated.profiles.osx": {
+		"bash": {
+			"path": "/bin/bash",
+			"args": ["-l"],
+			"env": {
+				"VIRTUAL_ENV": "${workspaceFolder}/backend/venv"
+			}
+		},
+		"zsh": {
+			"path": "/bin/zsh",
+			"args": ["-l"],
+			"env": {
+				"VIRTUAL_ENV": "${workspaceFolder}/backend/venv"
+			}
+		}
+	},
+	"terminal.integrated.defaultProfile.osx": "zsh",
+	// Python linting and formatting
+	"python.linting.enabled": true,
+	"python.linting.pylintEnabled": false,
+	"python.formatting.provider": "none"
 }

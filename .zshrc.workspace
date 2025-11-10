@@ -1,0 +1,9 @@
+# Workspace-specific zsh configuration for Cursor
+# This file is sourced when opening a terminal in Cursor
+
+# Auto-activate Python virtual environment if it exists
+if [ -d "${WORKSPACE_FOLDER:-$PWD}/backend/venv" ]; then
+    source "${WORKSPACE_FOLDER:-$PWD}/backend/venv/bin/activate"
+    echo "✓ Virtual environment activated: $VIRTUAL_ENV"
+fi
+

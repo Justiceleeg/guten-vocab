@@ -113,6 +113,12 @@ This system helps teachers:
    # Edit .env with your DATABASE_URL and OPENAI_API_KEY
    ```
 
+   **For Cursor/VS Code users:**
+   - The workspace is configured to automatically use the virtual environment
+   - Cursor terminals should auto-activate the venv (check for `(venv)` in prompt)
+   - If venv doesn't activate automatically, use: `source backend/activate.sh`
+   - Or manually activate: `source backend/venv/bin/activate`
+
 3. **Set up Frontend**
    ```bash
    cd frontend
