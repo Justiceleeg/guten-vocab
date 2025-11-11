@@ -1,7 +1,7 @@
-# AI Energy Plan Recommendation Agent
+# Personalized Vocabulary Recommendation Engine for Middle School Students
 
-**Organization:** Arbor
-**Project ID:** 85twgWvlJ3Z1g6dpiGy5_1762214728178
+**Organization:** Flourish Schools
+**Project ID:** JnGyV0Xlx2AEiL31nu7J_1761523676397
 
 ---
 
@@ -9,89 +9,77 @@
 
 ## 1. Executive Summary
 
-The **AI Energy Plan Recommendation Agent** is an intelligent solution developed by Arbor to assist customers in deregulated energy markets. This agent analyzes individual customer usage patterns, preferences, and existing energy plans to recommend the top three optimal energy plans. The solution aims to simplify the selection process by providing clear, personalized recommendations based on cost savings, contract flexibility, and renewable energy preferences, thus enhancing user satisfaction and boosting conversion rates by reducing decision paralysis.
+The Personalized Vocabulary Recommendation Engine for Middle School Students is a cutting-edge AI solution developed by Flourish Schools. This product aims to address the challenge faced by educators in identifying and recommending age-appropriate vocabulary words tailored to each student's proficiency level. By leveraging AI to analyze student conversation transcripts and writing samples, the system will identify vocabulary gaps and suggest challenging yet attainable words for students. This solution will automate the vocabulary enhancement process, significantly reducing teacher workload and accelerating student vocabulary acquisition.
 
 ## 2. Problem Statement
 
-Customers in deregulated energy markets are overwhelmed by the multitude of energy supplier options, each with complex rate structures, contract terms, and fees. This complexity makes it difficult for customers to identify the most cost-effective and suitable energy plan. The AI Energy Plan Recommendation Agent addresses this challenge by providing personalized, explainable recommendations, helping customers make informed decisions that align with their priorities.
+Middle school educators currently struggle with manually identifying vocabulary gaps in students' language use. This process is time-consuming and often fails to provide personalized recommendations that align with each student's current proficiency level. The lack of tailored vocabulary development opportunities may hinder students' language acquisition and overall academic performance. An automated system that can analyze language use and provide strategic vocabulary expansion opportunities is needed to address this gap.
 
 ## 3. Goals & Success Metrics
 
-- **Increase Conversion Rates**: Aiming for at least a 20% uplift in plan sign-ups due to improved decision-making support.
-- **Enhance Customer Satisfaction**: Achieving a Net Promoter Score (NPS) increase of 10 points by providing tailored recommendations.
-- **Reduce Support Burden**: Decrease customer support inquiries related to plan selection by 30%.
-- **User Engagement**: Target a 15% increase in interaction time with the recommendation tool.
+- **Goal:** Automate the identification of vocabulary gaps and provide personalized vocabulary recommendations for middle school students.
+- **Success Metrics:**
+  - Increase in the rate of novel words properly used by students over time.
+  - Reduction in teacher time spent on manual vocabulary gap analysis.
+  - Positive feedback from educators regarding the usefulness of vocabulary recommendations.
 
 ## 4. Target Users & Personas
 
-### Primary Users
-- **Residential Energy Consumers**: Individuals in deregulated energy markets looking to optimize their energy costs and preferences.
-  - **Pain Points**: Difficulty understanding complex plans, fear of overpaying, and confusion over renewable options.
-
-### Secondary Users
-- **Small Business Owners**: Seeking cost-effective and sustainable energy solutions.
-  - **Pain Points**: Need for predictable energy costs, sustainability goals.
+- **Primary Users:** Middle School Educators
+  - **Needs/Pain Points:** Need efficient tools to analyze and recommend vocabulary words, desire to enhance student language skills without overwhelming manual effort.
+- **Secondary Users:** Middle School Students
+  - **Needs/Pain Points:** Require personalized vocabulary recommendations that are challenging yet achievable, need support in improving language skills.
 
 ## 5. User Stories
 
-1. **As a residential energy consumer**, I want to receive personalized energy plan recommendations so that I can choose the most cost-effective and suitable option for my household.
-   
-2. **As a small business owner**, I want to understand the trade-offs between cost and renewable energy options so that I can align my energy plan with my sustainability goals.
-
-3. **As a customer with high summer usage**, I want to know how different plans accommodate seasonal variations so that I can avoid unexpected costs.
+1. As a middle school educator, I want to receive a list of vocabulary words tailored to each student's proficiency level so that I can efficiently enhance their language skills.
+2. As a middle school student, I want to be challenged with new vocabulary words that I can realistically learn and use effectively, so that I can improve my language proficiency.
 
 ## 6. Functional Requirements
 
-### P0: Must-have (Critical)
-- **Data Processing**:
-  - Accept 12 months of customer usage data (kWh).
-  - Ingest current plan details (rate, contract end date, early termination fee).
-  - Capture customer preferences (cost savings, flexibility, renewable energy, supplier ratings).
-  - Import a supplier plan catalog with various attributes.
-  
-- **Recommendation Logic**:
-  - Generate top 3 plan recommendations.
-  - Calculate projected annual savings.
-  - Provide explanations in plain language.
-  - Consider contract timing and switching costs.
+- **P0: Must-have**
+  - System builds a profile of students' current vocabulary from continuous text input.
+  - AI identifies vocabulary gaps and suggests appropriate words for each student.
+  - System maintains a dynamic list of recommended words for educators.
 
-### P1: Should-have (Important)
-- **Basic Risk Awareness**:
-  - Flag potential issues with recommendations.
-  - Indicate when switching might not be beneficial.
-  - Highlight uncertainty with insufficient data.
+- **P1: Should-have**
+  - Dashboard for educators to review vocabulary recommendations and track student progress.
+  - Ability to integrate with existing educational platforms for seamless data import.
 
-### P2: Nice-to-have (Optional)
-- **User Feedback Loop**:
-  - Allow users to rate recommendations which can be used for iterative improvements.
+- **P2: Nice-to-have**
+  - Gamified vocabulary challenges to engage students and encourage learning.
+  - Customizable recommendation settings for educators.
 
 ## 7. Non-Functional Requirements
 
-- **Performance**: Recommendations should be generated within 2 seconds to ensure a seamless user experience.
-- **Security**: Ensure data privacy and compliance with GDPR and other applicable regulations.
-- **Scalability**: System should handle thousands of users concurrently, leveraging cloud platforms like GCP or AWS.
+- **Performance:** Capable of high-performance parallel processing of full-day classroom conversation transcripts and writing projects.
+- **Scalability:** Should handle increasing volumes of student data without loss of performance.
+- **Security:** Ensure data privacy and compliance with educational data protection standards.
 
 ## 8. User Experience & Design Considerations
 
-- **Intuitive Interface**: Use simple, clear language and visuals to explain recommendations and trade-offs.
-- **Accessibility**: Design must comply with WCAG 2.1 standards to ensure inclusivity for all users.
-- **Mobile-Friendly**: Ensure the solution is responsive for mobile devices.
+- **Workflows:** Simple and intuitive interfaces for both educators and students.
+- **Interface Principles:** Clear visualization of vocabulary progress and recommendations.
+- **Accessibility Needs:** Must be accessible to users with varying levels of technical proficiency.
 
 ## 9. Technical Requirements
 
-- **System Architecture**: Cloud-based infrastructure utilizing GCP or AWS for scalability and performance.
-- **Integrations**: Use publicly available APIs for energy supplier data and customer usage data.
-- **Data Requirements**: Store user data securely with anonymization protocols for privacy.
+- **System Architecture:** Cloud-based deployment on AWS preferred.
+- **Integrations:** Use publicly available APIs for text processing and analysis.
+- **Data Requirements:** Utilize open-source text corpora and mock student data for development.
+- **Programming Language:** Python
+- **AI Frameworks:** Flexible, not specified.
 
 ## 10. Dependencies & Assumptions
 
-- **Supplier Data**: Access to a comprehensive and updated supplier plan catalog.
-- **User Data**: Availability of 12 months of reliable customer usage data.
-- **AI Tools**: Leverage AI/ML frameworks for recommendation logic.
+- Availability of student conversation transcripts and writing samples for analysis.
+- Integration capabilities with existing school data management systems.
+- Access to AWS or equivalent cloud platform for deployment.
 
 ## 11. Out of Scope
 
-- **Billing and Payment Processing**: Not included in the current version.
-- **In-depth Energy Market Analysis**: Detailed market trend analysis is beyond the scope of this release.
+- Direct classroom implementation or training for educators.
+- Development of proprietary AI frameworks beyond publicly available tools.
+- Real-time speech-to-text conversion; assumes text data is pre-processed.
 
-This PRD outlines the specifications and rationale for developing the AI Energy Plan Recommendation Agent. It is designed to be a self-contained document that guides the development and ensures a shared understanding among stakeholders for independent execution.
+This PRD outlines a clear framework for developing the Personalized Vocabulary Recommendation Engine, ensuring alignment with educational goals and enabling seamless implementation by cross-functional teams.
