@@ -402,6 +402,7 @@ def phase2_extract_vocabulary(dataset_path: Path, selected_books_path: Path):
     
     # Load vocabulary words from database
     db = SessionLocal()
+    vocab_dict = {}
     try:
         vocab_words = db.query(VocabularyWord).all()
         vocab_dict = {word.word.lower(): word.id for word in vocab_words}
@@ -414,6 +415,14 @@ def phase2_extract_vocabulary(dataset_path: Path, selected_books_path: Path):
     
     # Process each book
     db = SessionLocal()
+    stats = {
+        'processed': 0,
+        'failed': 0,
+        'failed_books': [],
+        'total_vocab_matches': 0,
+        'books_by_vocab': []
+    }
+    
     try:
         for i, book_data in enumerate(books, 1):
             gutenberg_id = book_data.get("gutenberg_id")
@@ -423,73 +432,148 @@ def phase2_extract_vocabulary(dataset_path: Path, selected_books_path: Path):
             
             print(f"\n   [{i}/{len(books)}] Processing: {book_data.get('title', 'Unknown')} (ID: {gutenberg_id})")
             
-            # Find counts file
-            counts_file = find_counts_file(counts_dir.parent if "data" in str(counts_dir) else counts_dir, gutenberg_id)
-            if not counts_file:
-                print(f"      ❌ Counts file not found")
-                continue
+            try:
+                # Find counts file
+                counts_file = find_counts_file(counts_dir.parent if "data" in str(counts_dir) else counts_dir, gutenberg_id)
+                if not counts_file:
+                    print(f"      ❌ Counts file not found")
+                    stats['failed'] += 1
+                    stats['failed_books'].append({'title': book_data.get('title', 'Unknown'), 'reason': 'Counts file not found'})
+                    continue
             
-            # Parse counts
-            counts = parse_counts_file(counts_file)
-            if not counts:
-                print(f"      ⚠️  No counts found in file")
-                continue
+                # Parse counts
+                counts = parse_counts_file(counts_file)
+                if not counts:
+                    print(f"      ⚠️  No counts found in file")
+                    stats['failed'] += 1
+                    stats['failed_books'].append({'title': book_data.get('title', 'Unknown'), 'reason': 'No counts found in file'})
+                    continue
             
-            # Lemmatize and match vocabulary
-            matched_vocab = {}
-            total_words = 0
-            
-            for word, count in counts.items():
-                total_words += count
-                # Lemmatize
-                doc = nlp(word)
-                lemma = doc[0].lemma_.lower() if len(doc) > 0 else word.lower()
+                # Lemmatize and match vocabulary
+                # Batch process words for efficiency (spaCy is much faster on batches)
+                matched_vocab = {}
+                total_words = 0
                 
-                # Check if in vocabulary
-                if lemma in vocab_dict:
-                    word_id = vocab_dict[lemma]
-                    matched_vocab[word_id] = matched_vocab.get(word_id, 0) + count
+                # Collect all unique words first
+                unique_words = list(counts.keys())
+                
+                # Batch lemmatize (process in chunks of 1000 for memory efficiency)
+                batch_size = 1000
+                word_to_lemma = {}
+                
+                for i in range(0, len(unique_words), batch_size):
+                    batch = unique_words[i:i + batch_size]
+                    docs = nlp.pipe(batch, batch_size=batch_size, disable=["parser", "ner"])
+                    for word, doc in zip(batch, docs):
+                        lemma = doc[0].lemma_.lower() if len(doc) > 0 else word.lower()
+                        word_to_lemma[word] = lemma
+                
+                # Now match to vocabulary
+                for word, count in counts.items():
+                    total_words += count
+                    lemma = word_to_lemma.get(word, word.lower())
+                    
+                    # Check if in vocabulary
+                    if lemma in vocab_dict:
+                        word_id = vocab_dict[lemma]
+                        matched_vocab[word_id] = matched_vocab.get(word_id, 0) + count
+                
+                vocab_match_count = len(matched_vocab)
+                stats['total_vocab_matches'] += vocab_match_count
+                stats['books_by_vocab'].append({
+                    'title': book_data.get('title', 'Unknown'),
+                    'vocab_matches': vocab_match_count,
+                    'total_words': total_words
+                })
+                
+                print(f"      ✅ Found {vocab_match_count} vocabulary matches out of {total_words:,} total words")
             
-            print(f"      ✅ Found {len(matched_vocab)} vocabulary matches out of {total_words:,} total words")
+                # Insert/update book
+                book = db.query(Book).filter(Book.gutenberg_id == gutenberg_id).first()
+                if not book:
+                    book = Book(
+                        gutenberg_id=gutenberg_id,
+                        title=book_data.get("title", "Unknown"),
+                        author=book_data.get("author"),
+                        reading_level=book_data.get("reading_level"),
+                        total_words=total_words,
+                    )
+                    db.add(book)
+                    db.flush()
+                else:
+                    book.total_words = total_words
+                    # Clear existing vocabulary
+                    db.query(BookVocabulary).filter(BookVocabulary.book_id == book.id).delete()
+                
+                # Insert vocabulary matches
+                for word_id, count in matched_vocab.items():
+                    book_vocab = BookVocabulary(
+                        book_id=book.id,
+                        word_id=word_id,
+                        occurrence_count=count,
+                    )
+                    db.add(book_vocab)
+                
+                db.commit()
+                stats['processed'] += 1
+                print(f"      💾 Saved to database")
             
-            # Insert/update book
-            book = db.query(Book).filter(Book.gutenberg_id == gutenberg_id).first()
-            if not book:
-                book = Book(
-                    gutenberg_id=gutenberg_id,
-                    title=book_data.get("title", "Unknown"),
-                    author=book_data.get("author"),
-                    reading_level=book_data.get("reading_level"),
-                    total_words=total_words,
-                )
-                db.add(book)
-                db.flush()
-            else:
-                book.total_words = total_words
-                # Clear existing vocabulary
-                db.query(BookVocabulary).filter(BookVocabulary.book_id == book.id).delete()
-            
-            # Insert vocabulary matches
-            for word_id, count in matched_vocab.items():
-                book_vocab = BookVocabulary(
-                    book_id=book.id,
-                    word_id=word_id,
-                    occurrence_count=count,
-                )
-                db.add(book_vocab)
-            
-            db.commit()
-            print(f"      💾 Saved to database")
+            except Exception as e:
+                db.rollback()
+                stats['failed'] += 1
+                stats['failed_books'].append({
+                    'title': book_data.get('title', 'Unknown'),
+                    'reason': str(e)
+                })
+                print(f"      ❌ Error processing book: {e}")
+                continue
     
     except Exception as e:
         db.rollback()
-        print(f"\n❌ Error: {e}")
+        print(f"\n❌ Fatal Error: {e}")
         raise
     finally:
         db.close()
     
+    # Print summary statistics
     print("\n" + "=" * 70)
     print("✅ Phase 2 Complete!")
+    print("=" * 70)
+    print(f"\n📊 Summary Statistics:")
+    print(f"   ✅ Books processed successfully: {stats['processed']}")
+    print(f"   ❌ Books failed: {stats['failed']}")
+    
+    if stats['processed'] > 0:
+        avg_vocab = stats['total_vocab_matches'] / stats['processed']
+        print(f"   📚 Average vocabulary matches per book: {avg_vocab:.1f}")
+        print(f"   📖 Total vocabulary matches: {stats['total_vocab_matches']:,}")
+        
+        # Top books by vocabulary coverage
+        stats['books_by_vocab'].sort(key=lambda x: x['vocab_matches'], reverse=True)
+        total_vocab_words = len(vocab_dict)
+        print(f"\n   🏆 Top 5 books by vocabulary matches:")
+        for i, book_info in enumerate(stats['books_by_vocab'][:5], 1):
+            title = book_info['title'][:50]
+            matches = book_info['vocab_matches']
+            pct = (matches / total_vocab_words * 100) if total_vocab_words > 0 else 0
+            print(f"      {i}. {title}: {matches} matches ({pct:.1f}% of {total_vocab_words} vocab words)")
+        
+        # Books with lowest vocabulary coverage
+        if len(stats['books_by_vocab']) > 5:
+            print(f"\n   📉 Bottom 5 books by vocabulary matches:")
+            for i, book_info in enumerate(stats['books_by_vocab'][-5:], 1):
+                title = book_info['title'][:50]
+                matches = book_info['vocab_matches']
+                pct = (matches / total_vocab_words * 100) if total_vocab_words > 0 else 0
+                print(f"      {i}. {title}: {matches} matches ({pct:.1f}% of {total_vocab_words} vocab words)")
+    
+    if stats['failed'] > 0:
+        print(f"\n   ⚠️  Failed books:")
+        for failed in stats['failed_books'][:10]:  # Show first 10
+            print(f"      - {failed['title']}: {failed['reason']}")
+        if len(stats['failed_books']) > 10:
+            print(f"      ... and {len(stats['failed_books']) - 10} more")
+    
     print("=" * 70)
 
 
