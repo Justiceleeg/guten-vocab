@@ -76,26 +76,35 @@
 - [x] 8.4 Verify CORS configuration in `main.py` allows frontend origin
 
 ## 9. Testing and Documentation
-- [ ] 9.1 Test `GET /api/students` with curl or Postman:
+- [x] 9.1 Test `GET /api/students` with curl or Postman:
   - Verify returns list of all students
   - Verify vocab_mastery_percent is calculated correctly
-- [ ] 9.2 Test `GET /api/students/{id}` with curl or Postman:
+  - ✅ Tested with test script - all 25 students returned correctly
+- [x] 9.2 Test `GET /api/students/{id}` with curl or Postman:
   - Verify returns detailed student profile
   - Verify 404 for non-existent student
   - Verify vocab_mastery, missing_words, misused_words, book_recommendations are correct
-- [ ] 9.3 Test `GET /api/class/stats` with curl or Postman:
+  - ✅ Tested with test script - detailed profile correct, 404 works
+- [x] 9.3 Test `GET /api/class/stats` with curl or Postman:
   - Verify returns class-wide statistics
   - Verify calculations are correct
-- [ ] 9.4 Test `GET /api/class/recommendations` with curl or Postman:
+  - ✅ Tested with test script - class stats returned correctly
+- [x] 9.4 Test `GET /api/class/recommendations` with curl or Postman:
   - Verify returns top 2 class recommendations
   - Verify book details are included
-- [ ] 9.5 Test `GET /api/books` (if implemented) with curl or Postman:
+  - ✅ Tested with test script - 2 recommendations returned with book details
+- [x] 9.5 Test `GET /api/books` (if implemented) with curl or Postman:
   - Verify returns list of books
   - Test filtering by reading_level_min/max
-- [ ] 9.6 Verify FastAPI automatic docs available at `/docs`
-- [ ] 9.7 Verify all endpoints return correct JSON structure matching schemas
+  - ✅ Tested with test script - books returned, filtering works
+- [x] 9.6 Verify FastAPI automatic docs available at `/docs`
+  - ✅ Verified - docs accessible at /docs and /redoc
+- [x] 9.7 Verify all endpoints return correct JSON structure matching schemas
+  - ✅ Verified - all endpoints return correct JSON matching Pydantic schemas
 
 ## 10. Validation
-- [ ] 10.1 Run `openspec validate implement-backend-api --strict` and fix any issues
-- [ ] 10.2 Verify all tasks are complete before marking change as ready
+- [x] 10.1 Run `openspec validate implement-backend-api --strict` and fix any issues
+  - ✅ Validated - no issues found
+- [x] 10.2 Verify all tasks are complete before marking change as ready
+  - ✅ All tasks complete - ready for archive
 
