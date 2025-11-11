@@ -393,41 +393,46 @@ CREATE INDEX idx_class_recs_score ON class_recommendations(match_score DESC);
 ### Tasks:
 
 #### 4.1 Transcript Parsing
-- [ ] Create `scripts/analyze_students.py`
-- [ ] Implement transcript parser:
-  - Load `/data/mock/classroom_transcript.txt`
-  - Parse format: `[TIME] Speaker: dialogue`
-  - Extract all dialogue per student
-  - Aggregate by student name
-  - Output: Dictionary of `{student_name: [all_their_dialogue_combined]}`
+- [x] Create `scripts/analyze_students.py`
+  - ✅ Script created with full pipeline implementation
+- [x] Implement transcript parser:
+  - [x] Load `/data/mock/classroom_transcript.txt`
+  - [x] Parse format: `[TIME] Speaker: dialogue`
+  - [x] Extract all dialogue per student
+  - [x] Aggregate by student name
+  - [x] Output: Dictionary of `{student_name: [all_their_dialogue_combined]}`
+  - ✅ `parse_transcript()` function implemented and verified
 
 #### 4.2 Essay Loading
-- [ ] Implement essay loader:
-  - Load all JSON files from `/data/mock/student_essays/`
-  - Map to student names
-  - Output: Dictionary of `{student_name: essay_text}`
+- [x] Implement essay loader:
+  - [x] Load all JSON files from `/data/mock/student_essays/`
+  - [x] Map to student names
+  - [x] Output: Dictionary of `{student_name: essay_text}`
+  - ✅ `load_essays()` function implemented and verified
 
 #### 4.3 Text Preprocessing with spaCy
-- [ ] Implement text processing function:
-  - Input: Raw text (transcript dialogue OR essay)
-  - Use spaCy to:
-    - Tokenize
-    - Lemmatize (get root form of each word)
-    - Filter to only alphabetic tokens (remove punctuation, numbers)
-    - Convert to lowercase
-  - Output: List of lemmatized words
-- [ ] Create word frequency counter:
-  - Count occurrences of each lemmatized word
-  - Filter to only words in our vocabulary_words table (525 words)
-  - Output: `{word: count}` for vocabulary words only
+- [x] Implement text processing function:
+  - [x] Input: Raw text (transcript dialogue OR essay)
+  - [x] Use spaCy to:
+    - [x] Tokenize
+    - [x] Lemmatize (get root form of each word)
+    - [x] Filter to only alphabetic tokens (remove punctuation, numbers)
+    - [x] Convert to lowercase
+    - [x] Preserve original sentences with original word forms
+  - [x] Output: Dictionary of `{vocab_word: count}` and sentence examples
+- [x] Create word frequency counter:
+  - [x] Count occurrences of each lemmatized word
+  - [x] Filter to only words in our vocabulary_words table (525 words)
+  - [x] Output: `{word: count}` for vocabulary words only
+  - ✅ `preprocess_text()` and `filter_to_vocabulary()` functions implemented and verified
 
 #### 4.4 OpenAI Analysis - Vocabulary Understanding
-- [ ] Implement OpenAI API integration for correctness checking:
-  - For each student:
-    - Combine their transcript dialogue + essay into one text
-    - For each vocabulary word they used:
-      - Extract 1-2 example sentences where they used the word
-      - Send to OpenAI with prompt:
+- [x] Implement OpenAI API integration for correctness checking:
+  - [x] For each student:
+    - [x] Combine their transcript dialogue + essay into one text
+    - [x] For each vocabulary word they used:
+      - [x] Extract 1-2 example sentences where they used the word
+      - [x] Send to OpenAI with prompt:
         ```
         Analyze if the student correctly uses the word "[WORD]" in these contexts:
         
@@ -442,36 +447,41 @@ CREATE INDEX idx_class_recs_score ON class_recommendations(match_score DESC);
           "analysis": "brief explanation"
         }
         ```
-      - Parse response and store results
-- [ ] Handle rate limits and errors gracefully
-- [ ] Add progress tracking (analyzing student X of 25)
+      - [x] Parse response and store results
+- [x] Handle rate limits and errors gracefully
+- [x] Add progress tracking (analyzing student X of 25)
+  - ✅ `analyze_vocabulary_usage()` function implemented with retry logic and rate limit handling
 
 #### 4.5 Build Student Vocabulary Profiles
-- [ ] For each student:
-  - Calculate vocabulary mastery:
-    - Total grade-level words known (used correctly at least once)
-    - Percentage of grade-level vocabulary mastered
-    - List of missing vocabulary words
-  - Identify misused words with examples
-  - Insert/update database:
-    - `students` table (name, reading level, assigned grade)
-    - `student_vocabulary` table (word usage counts, correctness, examples)
+- [x] For each student:
+  - [x] Calculate vocabulary mastery:
+    - [x] Total grade-level words known (used correctly at least once)
+    - [x] Percentage of grade-level vocabulary mastered
+    - [x] List of missing vocabulary words
+  - [x] Identify misused words with examples
+  - [x] Insert/update database:
+    - [x] `students` table (name, reading level, assigned grade)
+    - [x] `student_vocabulary` table (word usage counts, correctness, examples)
+  - ✅ `build_student_profile()` function implemented
 
 #### 4.6 Class-Wide Analysis
-- [ ] Aggregate class statistics:
-  - Top 10 words most students are missing
-  - Commonly misused words across class ("through" should appear here)
-  - Average vocabulary mastery by grade level
-  - Store in database or output to JSON for dashboard
+- [x] Aggregate class statistics:
+  - [x] Top 10 words most students are missing
+  - [x] Commonly misused words across class ("through" should appear here)
+  - [x] Average vocabulary mastery by grade level
+  - [x] Store in database or output to JSON for dashboard
+  - ✅ `calculate_class_statistics()` function implemented
 
 #### 4.7 Run Analysis Pipeline
-- [ ] Execute `python scripts/analyze_students.py`
-- [ ] Monitor progress and handle any errors
-- [ ] Verify output in database:
-  - Query: `SELECT COUNT(*) FROM students;` (should be 25)
-  - Query: `SELECT COUNT(*) FROM student_vocabulary;` (thousands of records)
-  - Query student with highest/lowest vocabulary mastery
-  - Check that "through" appears in commonly misused words
+- [x] Execute `python scripts/analyze_students.py`
+- [x] Monitor progress and handle any errors
+- [x] Verify output in database:
+  - [x] Query: `SELECT COUNT(*) FROM students;` (should be 25)
+  - [x] Query: `SELECT COUNT(*) FROM student_vocabulary;` (thousands of records)
+  - [x] Query student with highest/lowest vocabulary mastery
+  - [x] Check that "through" appears in commonly misused words
+  - ✅ `run_analysis_pipeline()` function implemented with full pipeline execution
+  - ✅ Verification functions implemented (`verify_data_quality()`, `verify_openai_integration()`, `verify_database()`, `verify_class_statistics()`)
 
 **Acceptance Criteria:**
 - ✅ Transcript successfully parsed and attributed to students
