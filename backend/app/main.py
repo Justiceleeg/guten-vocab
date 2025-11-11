@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from app.database import get_db
+from app.api.routes import students, class_routes, books
 
 app = FastAPI(
     title="Vocabulary Recommendation Engine API",
@@ -50,6 +51,12 @@ async def health_check(db: Session = Depends(get_db)):
             status_code=503,
             detail=f"Database connection failed: {str(e)}",
         )
+
+
+# Register API routes
+app.include_router(students.router, prefix="/api/students", tags=["students"])
+app.include_router(class_routes.router, prefix="/api/class", tags=["class"])
+app.include_router(books.router, prefix="/api/books", tags=["books"])
 
 
 if __name__ == "__main__":
