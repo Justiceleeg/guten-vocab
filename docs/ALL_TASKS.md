@@ -217,61 +217,59 @@ CREATE INDEX idx_class_recs_score ON class_recommendations(match_score DESC);
   - ✅ Tested: 525 words loaded successfully
 
 #### 2.3 Book Dataset - pgcorpus Setup
-- [ ] Research and document pgcorpus/gutenberg setup:
-  - Clone repo: `git clone https://github.com/pgcorpus/gutenberg.git`
-  - Install dependencies: `pip install -r requirements.txt`
-  - Run `python get_data.py` (downloads books - may take hours)
-  - Run `python process_data.py` (processes books into counts)
-  - Document location of `counts/` folder and metadata CSV
+- [x] Research and document pgcorpus/gutenberg setup:
+  - [x] Documented full pgcorpus setup process in `docs/pgcorpus-setup.md`
+  - [x] Identified Zenodo 2018 alternative (smaller, pre-processed dataset)
+  - [x] Documented Zenodo setup in `docs/zenodo-setup.md`
+  - [x] Created `scripts/setup_zenodo.py` for automated setup
+  - [x] Used Zenodo 2018 dataset (21GB vs 50-80GB for full pgcorpus)
+  - [x] Dataset location: `data/pgcorpus-2018/` with `counts/` folder and `metadata.csv`
 
 #### 2.4 Book Filtering & Selection Script
-- [ ] Create `scripts/seed_books.py`:
-  - Load pgcorpus metadata CSV
-  - Filter books by:
-    - Category: "Children's Literature" OR "Children's Fiction"
-    - Language: English
-    - Has counts file available
-  - Calculate reading level using textstat library (Flesch-Kincaid)
-  - Filter to reading level 5.0-9.0
-  - Sort by download count (popularity)
-  - Select top 100 books
-  - Save list to `/data/books/selected_books.json` with:
-    ```json
-    [
-      {
-        "gutenberg_id": 76,
-        "title": "Adventures of Huckleberry Finn",
-        "author": "Mark Twain",
-        "reading_level": 7.2,
-        "download_count": 50000
-      }
-    ]
-    ```
+- [x] Create `scripts/seed_books.py`:
+  - [x] Load pgcorpus/Zenodo metadata CSV (supports both formats)
+  - [x] Filter books by:
+    - [x] Category: "Children's Literature" OR "Children's Fiction" (also checks "subjects" column)
+    - [x] Language: English
+    - [x] Has counts file available
+  - [ ] Calculate reading level using textstat library (Flesch-Kincaid)
+    - **Note:** Intentionally skipped - requires book text which is not in counts files
+  - [ ] Filter to reading level 5.0-9.0
+    - **Note:** Skipped since reading level calculation not implemented
+  - [x] Sort by download count (popularity)
+  - [x] Select top 100 books
+  - [x] Save list to `/data/books/selected_books.json` with required fields
+    - ✅ Verified: 100 books selected and saved
 
 #### 2.5 Book Vocabulary Extraction
-- [ ] Extend `scripts/seed_books.py` to:
-  - For each selected book:
-    - Load pre-computed counts file from pgcorpus
-    - Apply spaCy lemmatization to each word in counts
-    - Filter to only words in our vocabulary_words table (525 words)
-    - Calculate total word count of book
-    - Insert into `books` table
-    - Insert word counts into `book_vocabulary` table
-  - Add progress tracking (processing book X of 100)
-  - Handle errors gracefully (skip books that fail)
-  - Print summary statistics:
-    - Total books processed
-    - Average vocabulary coverage per book
-    - Books with highest/lowest coverage
+- [x] Extend `scripts/seed_books.py` to:
+  - [x] For each selected book:
+    - [x] Load pre-computed counts file from pgcorpus/Zenodo (supports both formats)
+    - [x] Apply spaCy lemmatization to each word in counts (optimized with batch processing)
+    - [x] Filter to only words in our vocabulary_words table (525 words)
+    - [x] Calculate total word count of book
+    - [x] Insert into `books` table (idempotent - updates if exists)
+    - [x] Insert word counts into `book_vocabulary` table
+  - [x] Add progress tracking (processing book X of 100, shows current title)
+  - [x] Handle errors gracefully (skip books that fail, track failures)
+  - [x] Print summary statistics:
+    - [x] Total books processed successfully
+    - [x] Total books failed
+    - [x] Average vocabulary coverage per book
+    - [x] Books with highest/lowest coverage
+    - [x] Total book_vocabulary records created
 
 #### 2.6 Run Vocabulary & Book Seeding
-- [ ] Execute `python scripts/seed_vocabulary.py`
-- [ ] Execute `python scripts/seed_books.py`
-- [ ] Verify data in database:
-  - Query: `SELECT COUNT(*) FROM vocabulary_words;` (should be ~525)
-  - Query: `SELECT COUNT(*) FROM books;` (should be ~100)
-  - Query: `SELECT COUNT(*) FROM book_vocabulary;` (should be ~10,000-50,000)
-  - Query top 10 books by vocab coverage
+- [x] Execute `python scripts/seed_vocabulary.py`
+  - ✅ Result: 525 words loaded successfully
+- [x] Execute `python scripts/seed_books.py`
+  - ✅ Phase 1: 100 books selected and saved to `data/books/selected_books.json`
+  - ✅ Phase 2: 100 books processed, 10,914 vocabulary relationships created
+- [x] Verify data in database:
+  - [x] Query: `SELECT COUNT(*) FROM vocabulary_words;` → **525** ✅
+  - [x] Query: `SELECT COUNT(*) FROM books;` → **100** ✅
+  - [x] Query: `SELECT COUNT(*) FROM book_vocabulary;` → **10,914** ✅
+  - [x] Query top 10 books by vocab coverage → Verified (top: Little Dorrit with 344 matches)
 
 **Acceptance Criteria:**
 - ✅ 525 vocabulary words loaded into database
