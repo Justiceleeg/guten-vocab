@@ -236,9 +236,9 @@ CREATE INDEX idx_class_recs_score ON class_recommendations(match_score DESC);
 
 #### 2.3 Book Dataset - pgcorpus Setup
 - [x] Research and document pgcorpus/gutenberg setup:
-  - [x] Documented full pgcorpus setup process in `docs/pgcorpus-setup.md`
+  - [x] Documented full pgcorpus setup process in `docs/setup/pgcorpus-setup.md`
   - [x] Identified Zenodo 2018 alternative (smaller, pre-processed dataset)
-  - [x] Documented Zenodo setup in `docs/zenodo-setup.md`
+  - [x] Documented Zenodo setup in `docs/setup/zenodo-setup.md`
   - [x] Created `scripts/setup_zenodo.py` for automated setup
   - [x] Used Zenodo 2018 dataset (21GB vs 50-80GB for full pgcorpus)
   - [x] Dataset location: `data/pgcorpus-2018/` with `counts/` folder and `metadata.csv`
