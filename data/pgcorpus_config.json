@@ -1,0 +1,6 @@
+{
+  "dataset_type": "zenodo_2018",
+  "dataset_path": "/Users/justicepwhite/code/gauntletai-code/guten-vocab/data/pgcorpus-2018",
+  "counts_path": "/Users/justicepwhite/code/gauntletai-code/guten-vocab/data/pgcorpus-2018/counts",
+  "metadata_path": "/Users/justicepwhite/code/gauntletai-code/guten-vocab/data/pgcorpus-2018/metadata.csv"
+}

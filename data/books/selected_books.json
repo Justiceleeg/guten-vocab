@@ -1,0 +1,702 @@
+[
+  {
+    "gutenberg_id": 55,
+    "title": "The Wonderful Wizard of Oz",
+    "author": "Baum, L. Frank (Lyman Frank)",
+    "reading_level": null,
+    "download_count": 4219
+  },
+  {
+    "gutenberg_id": 141,
+    "title": "Mansfield Park",
+    "author": "Austen, Jane",
+    "reading_level": null,
+    "download_count": 2904
+  },
+  {
+    "gutenberg_id": 14838,
+    "title": "The Tale of Peter Rabbit",
+    "author": "Potter, Beatrix",
+    "reading_level": null,
+    "download_count": 2262
+  },
+  {
+    "gutenberg_id": 209,
+    "title": "The Turn of the Screw",
+    "author": "James, Henry",
+    "reading_level": null,
+    "download_count": 2054
+  },
+  {
+    "gutenberg_id": 236,
+    "title": "The Jungle Book",
+    "author": "Kipling, Rudyard",
+    "reading_level": null,
+    "download_count": 2053
+  },
+  {
+    "gutenberg_id": 33,
+    "title": "The Scarlet Letter",
+    "author": "Hawthorne, Nathaniel",
+    "reading_level": null,
+    "download_count": 2048
+  },
+  {
+    "gutenberg_id": 902,
+    "title": "The Happy Prince, and Other Tales",
+    "author": "Wilde, Oscar",
+    "reading_level": null,
+    "download_count": 1822
+  },
+  {
+    "gutenberg_id": 1837,
+    "title": "The Prince and the Pauper",
+    "author": "Twain, Mark",
+    "reading_level": null,
+    "download_count": 1634
+  },
+  {
+    "gutenberg_id": 1023,
+    "title": "Bleak House",
+    "author": "Dickens, Charles",
+    "reading_level": null,
+    "download_count": 1585
+  },
+  {
+    "gutenberg_id": 4276,
+    "title": "North and South",
+    "author": "Gaskell, Elizabeth Cleghorn",
+    "reading_level": null,
+    "download_count": 1576
+  },
+  {
+    "gutenberg_id": 2781,
+    "title": "Just So Stories",
+    "author": "Kipling, Rudyard",
+    "reading_level": null,
+    "download_count": 1456
+  },
+  {
+    "gutenberg_id": 805,
+    "title": "This Side of Paradise",
+    "author": "Fitzgerald, F. Scott (Francis Scott)",
+    "reading_level": null,
+    "download_count": 1406
+  },
+  {
+    "gutenberg_id": 1597,
+    "title": "Andersen's Fairy Tales",
+    "author": "Andersen, H. C. (Hans Christian)",
+    "reading_level": null,
+    "download_count": 1377
+  },
+  {
+    "gutenberg_id": 27200,
+    "title": "Fairy Tales of Hans Christian Andersen",
+    "author": "Andersen, H. C. (Hans Christian)",
+    "reading_level": null,
+    "download_count": 1245
+  },
+  {
+    "gutenberg_id": 963,
+    "title": "Little Dorrit",
+    "author": "Dickens, Charles",
+    "reading_level": null,
+    "download_count": 1094
+  },
+  {
+    "gutenberg_id": 25344,
+    "title": "The Scarlet Letter",
+    "author": "Hawthorne, Nathaniel",
+    "reading_level": null,
+    "download_count": 1063
+  },
+  {
+    "gutenberg_id": 110,
+    "title": "Tess of the d'Urbervilles: A Pure Woman",
+    "author": "Hardy, Thomas",
+    "reading_level": null,
+    "download_count": 1000
+  },
+  {
+    "gutenberg_id": 12116,
+    "title": "Struwwelpeter: Merry Stories and Funny Pictures",
+    "author": "Hoffmann, Heinrich",
+    "reading_level": null,
+    "download_count": 977
+  },
+  {
+    "gutenberg_id": 25609,
+    "title": "A Child's Garden of Verses",
+    "author": "Stevenson, Robert Louis",
+    "reading_level": null,
+    "download_count": 856
+  },
+  {
+    "gutenberg_id": 500,
+    "title": "The Adventures of Pinocchio",
+    "author": "Collodi, Carlo",
+    "reading_level": null,
+    "download_count": 847
+  },
+  {
+    "gutenberg_id": 35688,
+    "title": "Alice in Wonderland: A Dramatization of Lewis Carroll's \"Alice's Adventures in Wonderland\" and \"Through the Looking Glass\"",
+    "author": "Gerstenberg, Alice",
+    "reading_level": null,
+    "download_count": 836
+  },
+  {
+    "gutenberg_id": 1430,
+    "title": "Beautiful Stories from Shakespeare",
+    "author": "Shakespeare, William",
+    "reading_level": null,
+    "download_count": 831
+  },
+  {
+    "gutenberg_id": 3796,
+    "title": "Rilla of Ingleside",
+    "author": "Montgomery, L. M. (Lucy Maud)",
+    "reading_level": null,
+    "download_count": 799
+  },
+  {
+    "gutenberg_id": 550,
+    "title": "Silas Marner",
+    "author": "Eliot, George",
+    "reading_level": null,
+    "download_count": 796
+  },
+  {
+    "gutenberg_id": 17824,
+    "title": "Little Black Sambo",
+    "author": "Bannerman, Helen",
+    "reading_level": null,
+    "download_count": 761
+  },
+  {
+    "gutenberg_id": 35997,
+    "title": "The Jungle Book",
+    "author": "Kipling, Rudyard",
+    "reading_level": null,
+    "download_count": 730
+  },
+  {
+    "gutenberg_id": 271,
+    "title": "Black Beauty",
+    "author": "Sewell, Anna",
+    "reading_level": null,
+    "download_count": 728
+  },
+  {
+    "gutenberg_id": 5343,
+    "title": "Rainbow Valley",
+    "author": "Montgomery, L. M. (Lucy Maud)",
+    "reading_level": null,
+    "download_count": 715
+  },
+  {
+    "gutenberg_id": 2891,
+    "title": "Howards End",
+    "author": "Forster, E. M. (Edward Morgan)",
+    "reading_level": null,
+    "download_count": 712
+  },
+  {
+    "gutenberg_id": 153,
+    "title": "Jude the Obscure",
+    "author": "Hardy, Thomas",
+    "reading_level": null,
+    "download_count": 705
+  },
+  {
+    "gutenberg_id": 18226,
+    "title": "My Young Days",
+    "author": "Anonymous",
+    "reading_level": null,
+    "download_count": 662
+  },
+  {
+    "gutenberg_id": 128,
+    "title": "The Arabian Nights Entertainments",
+    "author": "Lang, Andrew",
+    "reading_level": null,
+    "download_count": 633
+  },
+  {
+    "gutenberg_id": 19337,
+    "title": "A Christmas Carol",
+    "author": "Dickens, Charles",
+    "reading_level": null,
+    "download_count": 624
+  },
+  {
+    "gutenberg_id": 42796,
+    "title": "The Box-Car Children",
+    "author": "Warner, Gertrude Chandler",
+    "reading_level": null,
+    "download_count": 618
+  },
+  {
+    "gutenberg_id": 501,
+    "title": "The Story of Doctor Dolittle",
+    "author": "Lofting, Hugh",
+    "reading_level": null,
+    "download_count": 613
+  },
+  {
+    "gutenberg_id": 1450,
+    "title": "Pollyanna",
+    "author": "Porter, Eleanor H. (Eleanor Hodgman)",
+    "reading_level": null,
+    "download_count": 597
+  },
+  {
+    "gutenberg_id": 28553,
+    "title": "How it Works: Dealing in simple language with steam, electricity, light, heat, sound, hydraulics, optics, etc., and with their applications to apparatus in common use",
+    "author": "Williams, Archibald",
+    "reading_level": null,
+    "download_count": 581
+  },
+  {
+    "gutenberg_id": 13650,
+    "title": "Nonsense Books",
+    "author": "Lear, Edward",
+    "reading_level": null,
+    "download_count": 567
+  },
+  {
+    "gutenberg_id": 20657,
+    "title": "Tales from Shakespeare",
+    "author": "Lamb, Mary",
+    "reading_level": null,
+    "download_count": 557
+  },
+  {
+    "gutenberg_id": 30120,
+    "title": "The Happy Prince, and Other Tales",
+    "author": "Wilde, Oscar",
+    "reading_level": null,
+    "download_count": 552
+  },
+  {
+    "gutenberg_id": 24737,
+    "title": "The Children of Odin: The Book of Northern Myths",
+    "author": "Colum, Padraic",
+    "reading_level": null,
+    "download_count": 545
+  },
+  {
+    "gutenberg_id": 370,
+    "title": "The Fortunes and Misfortunes of the Famous Moll Flanders",
+    "author": "Defoe, Daniel",
+    "reading_level": null,
+    "download_count": 543
+  },
+  {
+    "gutenberg_id": 52521,
+    "title": "Grimm's Fairy Tales",
+    "author": "Grimm, Jacob",
+    "reading_level": null,
+    "download_count": 506
+  },
+  {
+    "gutenberg_id": 7841,
+    "title": "A Primary Reader: Old-time Stories, Fairy Tales and Myths Retold by Children",
+    "author": "Smythe, E. Louise (Emma Louise)",
+    "reading_level": null,
+    "download_count": 489
+  },
+  {
+    "gutenberg_id": 4763,
+    "title": "The Game of Logic",
+    "author": "Carroll, Lewis",
+    "reading_level": null,
+    "download_count": 461
+  },
+  {
+    "gutenberg_id": 754,
+    "title": "The Story of Mankind",
+    "author": "Van Loon, Hendrik Willem",
+    "reading_level": null,
+    "download_count": 455
+  },
+  {
+    "gutenberg_id": 54,
+    "title": "The Marvelous Land of Oz",
+    "author": "Baum, L. Frank (Lyman Frank)",
+    "reading_level": null,
+    "download_count": 455
+  },
+  {
+    "gutenberg_id": 708,
+    "title": "The Princess and the Goblin",
+    "author": "MacDonald, George",
+    "reading_level": null,
+    "download_count": 449
+  },
+  {
+    "gutenberg_id": 11757,
+    "title": "The Velveteen Rabbit",
+    "author": "Bianco, Margery Williams",
+    "reading_level": null,
+    "download_count": 448
+  },
+  {
+    "gutenberg_id": 23661,
+    "title": "The Book of Dragons",
+    "author": "Nesbit, E. (Edith)",
+    "reading_level": null,
+    "download_count": 447
+  },
+  {
+    "gutenberg_id": 22693,
+    "title": "A Book of Myths",
+    "author": "Lang, Jean",
+    "reading_level": null,
+    "download_count": 445
+  },
+  {
+    "gutenberg_id": 1286,
+    "title": "Tales from Shakespeare",
+    "author": "Lamb, Mary",
+    "reading_level": null,
+    "download_count": 444
+  },
+  {
+    "gutenberg_id": 39452,
+    "title": "The Pilgrim's Progress by John Bunyan Every Child Can Read",
+    "author": "Bunyan, John",
+    "reading_level": null,
+    "download_count": 419
+  },
+  {
+    "gutenberg_id": 4357,
+    "title": "American Fairy Tales",
+    "author": "Baum, L. Frank (Lyman Frank)",
+    "reading_level": null,
+    "download_count": 416
+  },
+  {
+    "gutenberg_id": 18735,
+    "title": "The Little Red Hen: An Old English Folk Tale",
+    "author": "nan",
+    "reading_level": null,
+    "download_count": 408
+  },
+  {
+    "gutenberg_id": 27424,
+    "title": "Cautionary Tales for Children",
+    "author": "Belloc, Hilaire",
+    "reading_level": null,
+    "download_count": 402
+  },
+  {
+    "gutenberg_id": 19993,
+    "title": "Childhood's Favorites and Fairy Stories: The Young Folks Treasury, Volume 1",
+    "author": "nan",
+    "reading_level": null,
+    "download_count": 397
+  },
+  {
+    "gutenberg_id": 573,
+    "title": "Tales from Shakespeare",
+    "author": "Lamb, Mary",
+    "reading_level": null,
+    "download_count": 390
+  },
+  {
+    "gutenberg_id": 3074,
+    "title": "The Burgess Bird Book for Children",
+    "author": "Burgess, Thornton W. (Thornton Waldo)",
+    "reading_level": null,
+    "download_count": 381
+  },
+  {
+    "gutenberg_id": 507,
+    "title": "Adam Bede",
+    "author": "Eliot, George",
+    "reading_level": null,
+    "download_count": 369
+  },
+  {
+    "gutenberg_id": 32488,
+    "title": "Just So Stories",
+    "author": "Kipling, Rudyard",
+    "reading_level": null,
+    "download_count": 359
+  },
+  {
+    "gutenberg_id": 4274,
+    "title": "Wives and Daughters",
+    "author": "Gaskell, Elizabeth Cleghorn",
+    "reading_level": null,
+    "download_count": 358
+  },
+  {
+    "gutenberg_id": 2787,
+    "title": "An Old-Fashioned Girl",
+    "author": "Alcott, Louisa May",
+    "reading_level": null,
+    "download_count": 351
+  },
+  {
+    "gutenberg_id": 43936,
+    "title": "The Wonderful Wizard of Oz",
+    "author": "Baum, L. Frank (Lyman Frank)",
+    "reading_level": null,
+    "download_count": 348
+  },
+  {
+    "gutenberg_id": 420,
+    "title": "Dorothy and the Wizard in Oz",
+    "author": "Baum, L. Frank (Lyman Frank)",
+    "reading_level": null,
+    "download_count": 345
+  },
+  {
+    "gutenberg_id": 32572,
+    "title": "Hans Andersen's Fairy Tales. Second Series",
+    "author": "Andersen, H. C. (Hans Christian)",
+    "reading_level": null,
+    "download_count": 344
+  },
+  {
+    "gutenberg_id": 479,
+    "title": "Little Lord Fauntleroy",
+    "author": "Burnett, Frances Hodgson",
+    "reading_level": null,
+    "download_count": 330
+  },
+  {
+    "gutenberg_id": 13646,
+    "title": "A Book of Nonsense",
+    "author": "Lear, Edward",
+    "reading_level": null,
+    "download_count": 329
+  },
+  {
+    "gutenberg_id": 2225,
+    "title": "\"Captains Courageous\": A Story of the Grand Banks",
+    "author": "Kipling, Rudyard",
+    "reading_level": null,
+    "download_count": 322
+  },
+  {
+    "gutenberg_id": 2667,
+    "title": "The Vicar of Wakefield",
+    "author": "Goldsmith, Oliver",
+    "reading_level": null,
+    "download_count": 313
+  },
+  {
+    "gutenberg_id": 24022,
+    "title": "A Christmas Carol",
+    "author": "Dickens, Charles",
+    "reading_level": null,
+    "download_count": 309
+  },
+  {
+    "gutenberg_id": 6168,
+    "title": "Fifty Famous People: A Book of Short Stories",
+    "author": "Baldwin, James",
+    "reading_level": null,
+    "download_count": 308
+  },
+  {
+    "gutenberg_id": 18343,
+    "title": "The Pied Piper of Hamelin",
+    "author": "Browning, Robert",
+    "reading_level": null,
+    "download_count": 305
+  },
+  {
+    "gutenberg_id": 14407,
+    "title": "The Tale of Benjamin Bunny",
+    "author": "Potter, Beatrix",
+    "reading_level": null,
+    "download_count": 302
+  },
+  {
+    "gutenberg_id": 582,
+    "title": "A Collection of Beatrix Potter Stories",
+    "author": "Potter, Beatrix",
+    "reading_level": null,
+    "download_count": 297
+  },
+  {
+    "gutenberg_id": 17208,
+    "title": "The Tales of Mother Goose: As First Collected by Charles Perrault in 1696",
+    "author": "Perrault, Charles",
+    "reading_level": null,
+    "download_count": 297
+  },
+  {
+    "gutenberg_id": 34414,
+    "title": "Just William",
+    "author": "Crompton, Richmal",
+    "reading_level": null,
+    "download_count": 293
+  },
+  {
+    "gutenberg_id": 10607,
+    "title": "The Real Mother Goose",
+    "author": "nan",
+    "reading_level": null,
+    "download_count": 290
+  },
+  {
+    "gutenberg_id": 699,
+    "title": "A Child's History of England",
+    "author": "Dickens, Charles",
+    "reading_level": null,
+    "download_count": 287
+  },
+  {
+    "gutenberg_id": 2726,
+    "title": "Eight Cousins",
+    "author": "Alcott, Louisa May",
+    "reading_level": null,
+    "download_count": 286
+  },
+  {
+    "gutenberg_id": 419,
+    "title": "The Magic of Oz",
+    "author": "Baum, L. Frank (Lyman Frank)",
+    "reading_level": null,
+    "download_count": 285
+  },
+  {
+    "gutenberg_id": 982,
+    "title": "The Book of Nonsense",
+    "author": "Lear, Edward",
+    "reading_level": null,
+    "download_count": 282
+  },
+  {
+    "gutenberg_id": 22566,
+    "title": "Dorothy and the Wizard in Oz",
+    "author": "Baum, L. Frank (Lyman Frank)",
+    "reading_level": null,
+    "download_count": 281
+  },
+  {
+    "gutenberg_id": 32571,
+    "title": "Hans Andersen's Fairy Tales. First Series",
+    "author": "Andersen, H. C. (Hans Christian)",
+    "reading_level": null,
+    "download_count": 272
+  },
+  {
+    "gutenberg_id": 2946,
+    "title": "Howards End",
+    "author": "Forster, E. M. (Edward Morgan)",
+    "reading_level": null,
+    "download_count": 265
+  },
+  {
+    "gutenberg_id": 17860,
+    "title": "Stories from Hans Andersen",
+    "author": "Andersen, H. C. (Hans Christian)",
+    "reading_level": null,
+    "download_count": 265
+  },
+  {
+    "gutenberg_id": 14837,
+    "title": "The Tale of Tom Kitten",
+    "author": "Potter, Beatrix",
+    "reading_level": null,
+    "download_count": 264
+  },
+  {
+    "gutenberg_id": 14872,
+    "title": "The Tale of Squirrel Nutkin",
+    "author": "Potter, Beatrix",
+    "reading_level": null,
+    "download_count": 262
+  },
+  {
+    "gutenberg_id": 2441,
+    "title": "The Burgess Animal Book for Children",
+    "author": "Burgess, Thornton W. (Thornton Waldo)",
+    "reading_level": null,
+    "download_count": 257
+  },
+  {
+    "gutenberg_id": 316,
+    "title": "The Golden Road",
+    "author": "Montgomery, L. M. (Lucy Maud)",
+    "reading_level": null,
+    "download_count": 256
+  },
+  {
+    "gutenberg_id": 16247,
+    "title": "Famous Stories Every Child Should Know",
+    "author": "nan",
+    "reading_level": null,
+    "download_count": 253
+  },
+  {
+    "gutenberg_id": 14868,
+    "title": "The Tailor of Gloucester",
+    "author": "Potter, Beatrix",
+    "reading_level": null,
+    "download_count": 251
+  },
+  {
+    "gutenberg_id": 486,
+    "title": "Ozma of Oz: A Record of Her Adventures with Dorothy Gale of Kansas, the Yellow Hen, the Scarecrow, the Tin Woodman, Tiktok, the Cowardly Lion, and the Hungry Tiger; Besides Other Good People too Numerous to Mention Faithfully Recorded Herein",
+    "author": "Baum, L. Frank (Lyman Frank)",
+    "reading_level": null,
+    "download_count": 250
+  },
+  {
+    "gutenberg_id": 677,
+    "title": "The Heroes; Or, Greek Fairy Tales for My Children",
+    "author": "Kingsley, Charles",
+    "reading_level": null,
+    "download_count": 249
+  },
+  {
+    "gutenberg_id": 28299,
+    "title": "The Orbis Pictus",
+    "author": "Comenius, Johann Amos",
+    "reading_level": null,
+    "download_count": 247
+  },
+  {
+    "gutenberg_id": 517,
+    "title": "The Emerald City of Oz",
+    "author": "Baum, L. Frank (Lyman Frank)",
+    "reading_level": null,
+    "download_count": 240
+  },
+  {
+    "gutenberg_id": 5347,
+    "title": "Understood Betsy",
+    "author": "Fisher, Dorothy Canfield",
+    "reading_level": null,
+    "download_count": 234
+  },
+  {
+    "gutenberg_id": 25429,
+    "title": "The Peril Finders",
+    "author": "Fenn, George Manville",
+    "reading_level": null,
+    "download_count": 231
+  },
+  {
+    "gutenberg_id": 35707,
+    "title": "Popular Rhymes and Nursery Tales: A Sequel to the Nursery Rhymes of England",
+    "author": "Halliwell-Phillipps, J. O. (James Orchard)",
+    "reading_level": null,
+    "download_count": 231
+  },
+  {
+    "gutenberg_id": 697,
+    "title": "The Light Princess",
+    "author": "MacDonald, George",
+    "reading_level": null,
+    "download_count": 230
+  }
+]

@@ -81,3 +81,8 @@ data/mock/student_essays/*.json
 !data/mock/.gitkeep
 !data/vocab/.gitkeep
 
+# External datasets (large, not committed)
+gutenberg/
+data/pgcorpus-2018/
+datasets/
+
