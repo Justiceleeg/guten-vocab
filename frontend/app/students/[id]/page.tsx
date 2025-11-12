@@ -239,7 +239,7 @@ export default function StudentDetailPage() {
           <CardHeader>
             <CardTitle>Book Recommendations</CardTitle>
             <CardDescription>
-              Personalized book suggestions based on vocabulary profile. These books will challenge {student.name} with new vocabulary words while reinforcing words they already know.
+              These books will challenge {student.name} with new vocabulary words while reinforcing words they already know.
             </CardDescription>
           </CardHeader>
           <CardContent>
