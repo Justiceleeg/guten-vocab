@@ -17,6 +17,7 @@ class VocabMasteryResponse(BaseModel):
 
 class MisusedWordResponse(BaseModel):
     """Misused word information."""
+    word_id: int
     word: str
     correct_count: int
     incorrect_count: int

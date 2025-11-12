@@ -4,10 +4,23 @@ Student API endpoints.
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 
 from app.database import get_db
-from app.services.student_service import get_all_students, get_student_by_id
+from app.services.student_service import get_all_students, get_student_by_id, dismiss_vocabulary_issue
 from app.schemas.student import StudentListResponse, StudentDetailResponse
+
+
+# Request schema for dismissal
+class DismissVocabularyRequest(BaseModel):
+    reason: str  # 'addressed' or 'ai_error'
+
+
+# Response schema for dismissal
+class DismissVocabularyResponse(BaseModel):
+    success: bool
+    dismissed_at: str
+
 
 router = APIRouter()
 
@@ -57,4 +70,55 @@ async def get_student(student_id: int, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=500,
             detail=f"Error fetching student: {str(e)}"
+        )
+
+
+@router.post("/{student_id}/vocabulary/{word_id}/dismiss", response_model=DismissVocabularyResponse)
+async def dismiss_vocabulary(
+    student_id: int,
+    word_id: int,
+    request: DismissVocabularyRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Dismiss a vocabulary issue for a student.
+    
+    Args:
+        student_id: Student ID
+        word_id: Vocabulary word ID
+        request: Dismissal request with reason ('addressed' or 'ai_error')
+        
+    Returns:
+        Success status and dismissal timestamp
+        
+    Raises:
+        400: If reason is invalid
+        404: If student or word not found
+    """
+    # Validate reason
+    if request.reason not in ['addressed', 'ai_error']:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid dismiss reason. Must be 'addressed' or 'ai_error'"
+        )
+    
+    try:
+        dismissed_at = dismiss_vocabulary_issue(db, student_id, word_id, request.reason)
+        
+        if dismissed_at is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Vocabulary issue not found"
+            )
+        
+        return DismissVocabularyResponse(
+            success=True,
+            dismissed_at=dismissed_at.isoformat()
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error dismissing vocabulary: {str(e)}"
         )

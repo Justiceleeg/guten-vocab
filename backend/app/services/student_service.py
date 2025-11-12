@@ -4,6 +4,7 @@ Student service for querying student data and calculating vocabulary metrics.
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from datetime import datetime
 
 from app.models.student import Student
 from app.models.vocabulary import VocabularyWord, StudentVocabulary
@@ -184,19 +185,20 @@ def get_missing_words(student: Student, db: Session) -> List[str]:
 
 def get_misused_words(student: Student, db: Session) -> List[MisusedWordResponse]:
     """
-    Get list of words with misuse examples.
+    Get list of words with misuse examples (excluding dismissed words).
     
     Args:
         student: Student model instance
         db: Database session
         
     Returns:
-        List of misused word responses
+        List of misused word responses (non-dismissed only)
     """
-    # Get student vocabulary with misuse examples
+    # Get student vocabulary with misuse examples (exclude dismissed)
     student_vocab = db.query(StudentVocabulary).filter(
         StudentVocabulary.student_id == student.id,
-        StudentVocabulary.misuse_examples.isnot(None)
+        StudentVocabulary.misuse_examples.isnot(None),
+        StudentVocabulary.dismissed == False  # Filter out dismissed words
     ).all()
     
     misused_words = []
@@ -209,6 +211,7 @@ def get_misused_words(student: Student, db: Session) -> List[MisusedWordResponse
             
             if word:
                 misused_words.append(MisusedWordResponse(
+                    word_id=sv.word_id,
                     word=word.word,
                     correct_count=sv.correct_usage_count,
                     incorrect_count=sv.usage_count - sv.correct_usage_count,
@@ -331,4 +334,42 @@ def get_student_by_id(db: Session, student_id: int) -> Optional[StudentDetailRes
         misused_words=misused_words,
         book_recommendations=book_recommendations
     )
+
+
+def dismiss_vocabulary_issue(
+    db: Session,
+    student_id: int,
+    word_id: int,
+    reason: str
+) -> Optional[datetime]:
+    """
+    Dismiss a vocabulary issue for a student.
+    
+    Args:
+        db: Database session
+        student_id: Student ID
+        word_id: Vocabulary word ID
+        reason: Dismissal reason ('addressed' or 'ai_error')
+        
+    Returns:
+        Dismissal timestamp if successful, None if record not found
+    """
+    # Find the student vocabulary record
+    student_vocab = db.query(StudentVocabulary).filter(
+        StudentVocabulary.student_id == student_id,
+        StudentVocabulary.word_id == word_id
+    ).first()
+    
+    if not student_vocab:
+        return None
+    
+    # Update dismissal fields
+    dismissed_at = datetime.now()
+    student_vocab.dismissed = True
+    student_vocab.dismissed_reason = reason
+    student_vocab.dismissed_at = dismissed_at
+    
+    db.commit()
+    
+    return dismissed_at
 

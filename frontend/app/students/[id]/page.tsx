@@ -29,6 +29,10 @@ export default function StudentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  
+  // Dismissal state
+  const [dismissingWordId, setDismissingWordId] = useState<number | null>(null);
+  const [dismissingWords, setDismissingWords] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!studentId || isNaN(studentId)) {
@@ -59,6 +63,41 @@ export default function StudentDetailPage() {
 
     fetchStudent();
   }, [studentId]);
+
+  const handleDismissClick = (wordId: number) => {
+    setDismissingWordId(wordId);
+  };
+
+  const handleDismiss = async (wordId: number, reason: 'addressed' | 'ai_error') => {
+    if (!studentId) return;
+    
+    try {
+      setDismissingWords(prev => new Set(prev).add(wordId));
+      await api.dismissVocabulary(studentId, wordId, reason);
+      
+      // Remove the word from the UI after successful dismissal
+      setStudent(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          misused_words: prev.misused_words.filter(w => w.word_id !== wordId)
+        };
+      });
+      setDismissingWordId(null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to dismiss";
+      alert(`Error: ${errorMessage}`);
+      setDismissingWords(prev => {
+        const next = new Set(prev);
+        next.delete(wordId);
+        return next;
+      });
+    }
+  };
+
+  const handleCancelDismiss = () => {
+    setDismissingWordId(null);
+  };
 
   if (loading) {
     return (
@@ -309,42 +348,86 @@ export default function StudentDetailPage() {
               <p className="text-muted-foreground">No misused words found. Great job! 🎉</p>
             ) : (
               <div className="space-y-4">
-                {student.misused_words.map((misused, index) => (
-                  <Card key={index} className="border-orange-200 dark:border-orange-900">
-                    <CardHeader>
-                      <CardTitle className="text-lg">{misused.word}</CardTitle>
-                      <CardDescription>
-                        Correct: {misused.correct_count} | Incorrect: {misused.incorrect_count}
-                      </CardDescription>
-                    </CardHeader>
-                    {misused.example && (
-                      <CardContent>
-                        <p className="text-sm">
-                          <span className="text-muted-foreground">Example: </span>
-                          <span className="italic">
-                            {(() => {
-                              const regex = new RegExp(`\\b${misused.word}\\b`, 'gi');
-                              const parts = misused.example.split(regex);
-                              const matches = misused.example.match(regex) || [];
-                              const result = [];
-                              for (let i = 0; i < parts.length; i++) {
-                                result.push(<span key={`part-${i}`}>{parts[i]}</span>);
-                                if (i < matches.length) {
-                                  result.push(
-                                    <span key={`match-${i}`} className="font-bold text-orange-600 dark:text-orange-400 underline">
-                                      {matches[i]}
-                                    </span>
-                                  );
+                {student.misused_words.map((misused, index) => {
+                  const isBeingDismissed = dismissingWords.has(misused.word_id);
+                  const showDismissButtons = dismissingWordId === misused.word_id;
+                  
+                  return (
+                    <Card key={index} className="border-orange-200 dark:border-orange-900 relative">
+                      <CardHeader className="pr-16">
+                        <CardTitle className="text-lg">{misused.word}</CardTitle>
+                        <CardDescription>
+                          Correct: {misused.correct_count} | Incorrect: {misused.incorrect_count}
+                        </CardDescription>
+                        
+                        {/* Dismiss UI in top-right */}
+                        <div className="absolute top-4 right-4">
+                          {!showDismissButtons && !isBeingDismissed && (
+                            <button
+                              onClick={() => handleDismissClick(misused.word_id)}
+                              className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                              aria-label="Dismiss this vocabulary issue"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                              </svg>
+                            </button>
+                          )}
+                          
+                          {showDismissButtons && !isBeingDismissed && (
+                            <div className="flex gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
+                              <button
+                                onClick={() => handleDismiss(misused.word_id, 'addressed')}
+                                className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                                title="I've corrected the student"
+                              >
+                                Addressed
+                              </button>
+                              <button
+                                onClick={() => handleDismiss(misused.word_id, 'ai_error')}
+                                className="px-2 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded transition-colors"
+                                title="This is an AI detection error"
+                              >
+                                AI Error
+                              </button>
+                            </div>
+                          )}
+                          
+                          {isBeingDismissed && (
+                            <div className="text-xs text-muted-foreground">Dismissing...</div>
+                          )}
+                        </div>
+                      </CardHeader>
+                      {misused.example && (
+                        <CardContent>
+                          <p className="text-sm">
+                            <span className="text-muted-foreground">Example: </span>
+                            <span className="italic">
+                              {(() => {
+                                const regex = new RegExp(`\\b${misused.word}\\b`, 'gi');
+                                const parts = misused.example.split(regex);
+                                const matches = misused.example.match(regex) || [];
+                                const result = [];
+                                for (let i = 0; i < parts.length; i++) {
+                                  result.push(<span key={`part-${i}`}>{parts[i]}</span>);
+                                  if (i < matches.length) {
+                                    result.push(
+                                      <span key={`match-${i}`} className="font-bold text-orange-600 dark:text-orange-400 underline">
+                                        {matches[i]}
+                                      </span>
+                                    );
+                                  }
                                 }
-                              }
-                              return result;
-                            })()}
-                          </span>
-                        </p>
-                      </CardContent>
-                    )}
-                  </Card>
-                ))}
+                                return result;
+                              })()}
+                            </span>
+                          </p>
+                        </CardContent>
+                      )}
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </CardContent>
