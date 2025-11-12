@@ -860,6 +860,76 @@ CREATE INDEX idx_class_recs_score ON class_recommendations(match_score DESC);
 
 ---
 
+## VERTICAL SLICE 7.5: Vocabulary Dismissal Feature
+**Goal:** Allow teachers to dismiss vocabulary misuse reports with contextual reasoning.
+
+### Tasks:
+
+#### 7.5.1 Database Schema
+- [x] Add dismissal columns to `student_vocabulary` table:
+  - `dismissed` BOOLEAN DEFAULT FALSE
+  - `dismissed_reason` VARCHAR(20) CHECK (dismissed_reason IN ('addressed', 'ai_error'))
+  - `dismissed_at` TIMESTAMP
+  - ✅ Migration executed successfully
+  - ✅ Index added on (student_id, dismissed) for efficient filtering
+  - ✅ Check constraint enforces valid dismissal reasons
+
+#### 7.5.2 Backend API
+- [x] Create dismissal endpoint:
+  - `POST /api/students/{student_id}/vocabulary/{word_id}/dismiss`
+  - Request body: `{ "reason": "addressed" | "ai_error" }`
+  - Response: `{ "success": true, "dismissed_at": timestamp }`
+  - ✅ Validates reason ('addressed' or 'ai_error')
+  - ✅ Returns 404 if student or word not found
+  - ✅ Returns 400 if reason is invalid
+- [x] Update backend service:
+  - Filter dismissed words from `get_misused_words()` service
+  - ✅ Only non-dismissed words returned to frontend
+  - ✅ Add `word_id` to `MisusedWordResponse` for dismissal tracking
+
+#### 7.5.3 Frontend UI
+- [x] Implement inline dismissal flow:
+  - X button in top-right of misused word cards
+  - Click X → show "Addressed" (blue) and "AI Error" (orange) buttons
+  - ✅ Smooth transitions with Tailwind animate-in
+  - ✅ Loading state shows "Dismissing..." during API call
+  - ✅ Card disappears after successful dismissal
+  - ✅ Error handling with alert on failure
+- [x] Update state management:
+  - Track `dismissingWordId` for which card is showing action buttons
+  - Track `dismissingWords` Set for loading states
+  - ✅ Remove dismissed word from local state after success
+
+#### 7.5.4 Testing & Validation
+- [x] End-to-end testing:
+  - Tested dismissal flow on student 10 (Christopher Williams - "comprise")
+  - ✅ X button appears and is clickable
+  - ✅ Action buttons appear on click
+  - ✅ "AI Error" dismissal works correctly
+  - ✅ Word persists as dismissed in database
+  - ✅ Refresh shows "No misused words found"
+- [x] Verified active misused words:
+  - Michael Taylor (ID: 19): incessant, conspicuous
+  - Michelle Garcia (ID: 20): conspicuous
+  - Nicole Rodriguez (ID: 25): incessant
+  - Angela Martin (ID: 30): comprise
+
+#### 7.5.5 Future Enhancements (Deferred)
+- [ ] Add "Show dismissed" toggle to view dismissed words
+- [ ] Show dismissed words with strikethrough styling
+- [ ] Include dismiss reason and timestamp in UI
+- [ ] Allow teachers to restore/un-dismiss words
+
+**Acceptance Criteria:**
+- ✅ Teachers can dismiss vocabulary issues with reason
+- ✅ Dismissal is permanent in database
+- ✅ Dismissed words no longer appear in UI
+- ✅ Dismissal reasons tracked ('addressed' vs 'ai_error')
+- ✅ Clean inline UX without modals
+- ✅ Spec updates documented in OpenSpec (archived as 2025-11-12-add-dismiss-vocabulary-issues)
+
+---
+
 ## VERTICAL SLICE 8: Teacher Dashboard - Class View
 **Goal:** Build frontend UI for class-wide insights.
 
