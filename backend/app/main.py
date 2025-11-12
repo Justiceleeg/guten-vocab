@@ -2,6 +2,7 @@
 FastAPI application entry point for Vocabulary Recommendation Engine.
 """
 
+import os
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -17,9 +18,22 @@ app = FastAPI(
 )
 
 # Configure CORS for frontend integration
+# Allow localhost for development and production frontend URL from environment
+allowed_origins = [
+    "http://localhost:3000",  # Next.js default port (development)
+]
+
+# Add production frontend URL from environment variable if set
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    # Ensure URL has protocol
+    if not frontend_url.startswith("http"):
+        frontend_url = f"https://{frontend_url}"
+    allowed_origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js default port
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
