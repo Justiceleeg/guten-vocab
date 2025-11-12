@@ -70,7 +70,15 @@ The system SHALL build comprehensive vocabulary profiles for each student and st
 #### Scenario: Calculate vocabulary mastery metrics
 - **WHEN** a student's vocabulary usage has been analyzed
 - **THEN** the system calculates:
-  - Total grade-level words known (used correctly at least once)
+  - Baseline knowledge based on reading level (40-85% of current grade words):
+    * Reading level 5 (struggling): ~40% baseline mastery
+    * Reading level 6 (below grade): ~55% baseline mastery
+    * Reading level 7 (at grade): ~75% baseline mastery
+    * Reading level 8 (above grade): ~85% baseline mastery
+  - Prerequisite grade knowledge (~95% of words from grades below assigned grade)
+  - Additional words demonstrated in transcript/essay (additive to baseline)
+  - Deterministic hashing ensures consistent baseline words per student
+  - Total grade-level words known (baseline + demonstrated words)
   - Percentage of grade-level vocabulary mastered
   - List of missing vocabulary words
 - **AND** identifies misused words with examples
