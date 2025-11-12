@@ -80,6 +80,8 @@ temp/
 data/mock/*.txt
 data/mock/*.json
 data/mock/student_essays/*.json
+# Generated book selection files
+backend/data/books/
 !data/mock/.gitkeep
 !data/vocab/.gitkeep
 
