@@ -11,8 +11,8 @@ python-dotenv==1.0.0
 
 # AI/NLP
 openai>=2.7.0
-spacy==3.7.2
-textstat==0.7.3
+# Note: spaCy removed - only needed for seed scripts, not API runtime
+# textstat==0.7.3  # Also only used in seed scripts
 
 # HTTP requests
 requests==2.31.0
