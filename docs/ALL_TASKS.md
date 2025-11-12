@@ -1018,57 +1018,57 @@ CREATE INDEX idx_class_recs_score ON class_recommendations(match_score DESC);
 ### Tasks:
 
 #### 8.5.1 Setup and Infrastructure
-- [ ] Install shadcn/ui Dialog component for modals
-- [ ] Add Open Library API client utilities (for book covers, summaries, page counts)
-- [ ] Add DictionaryAPI.dev client utilities (for word definitions, usage, origin)
-- [ ] Add TypeScript types for book details and word details
+- [x] Install shadcn/ui Dialog component for modals
+- [x] Add Open Library API client utilities (for book covers, summaries, page counts)
+- [x] Add DictionaryAPI.dev client utilities (for word definitions, usage, origin)
+- [x] Add TypeScript types for book details and word details
 
 #### 8.5.2 Book Recommendations Enhancement
-- [ ] Add book cover images to recommendation cards (student view and class view)
-- [ ] Fetch book covers from Open Library API with fallback placeholder
-- [ ] Create book detail modal component
-- [ ] Add click handler to book cards to open modal
-- [ ] Display book details in modal:
+- [x] Add book cover images to recommendation cards (student view and class view)
+- [x] Fetch book covers from Open Library API with fallback placeholder
+- [x] Create book detail modal component
+- [x] Add click handler to book cards to open modal
+- [x] Display book details in modal:
   - Book cover image (large)
   - Title and author
   - Page count (from Open Library API)
   - Summary/description (from Open Library API)
   - Reading level and match score
-- [ ] Add loading and error states for modal
-- [ ] Ensure modal is dismissible (click outside, ESC key)
+- [x] Add loading and error states for modal
+- [x] Ensure modal is dismissible (click outside, ESC key)
 
 #### 8.5.3 Sortable Student Table
-- [ ] Add sort state management to `/students` page
-- [ ] Default sort: descending by grade mastery % (highest first)
-- [ ] Add click handler to "Grade Mastery %" header to toggle sort
-- [ ] Add visual sort indicator (arrow icon)
-- [ ] Update table rendering to use sorted data
+- [x] Add sort state management to `/students` page
+- [x] Default sort: descending by grade mastery % (highest first)
+- [x] Add click handler to "Grade Mastery %" header to toggle sort
+- [x] Add visual sort indicator (arrow icon)
+- [x] Update table rendering to use sorted data
 
 #### 8.5.4 Word Detail Modals
-- [ ] Create word detail modal component
-- [ ] Add click handlers to vocabulary gap table rows (`/class` page)
-- [ ] Add click handlers to common mistakes table rows (`/class` page)
-- [ ] Display word information in modal:
+- [x] Create word detail modal component
+- [x] Add click handlers to vocabulary gap table rows (`/class` page)
+- [x] Add click handlers to common mistakes table rows (`/class` page)
+- [x] Display word information in modal:
   - Word definition (from DictionaryAPI.dev)
   - Usage examples
   - Word origin/etymology
-- [ ] Add loading and error states
-- [ ] Ensure modal is dismissible (click outside, ESC key)
+- [x] Add loading and error states
+- [x] Ensure modal is dismissible (click outside, ESC key)
 
 #### 8.5.5 Component Unification
-- [ ] Create reusable `VocabularyTableCard` component
-- [ ] Extract common structure from vocabulary gaps and common mistakes cards
-- [ ] Update both sections to use unified component
-- [ ] Ensure identical styling and behavior
+- [x] Create reusable `VocabularyTableCard` component
+- [x] Extract common structure from vocabulary gaps and common mistakes cards
+- [x] Update both sections to use unified component
+- [x] Ensure identical styling and behavior
 
 #### 8.5.6 Testing and Verification
-- [ ] Test book detail modals (open, close, loading, errors)
-- [ ] Test book cover images (loading, fallback placeholders)
-- [ ] Test sortable table functionality
-- [ ] Test word detail modals from both tables
-- [ ] Test modal dismissible behavior
-- [ ] Verify component unification
-- [ ] Test responsive design
+- [x] Test book detail modals (open, close, loading, errors)
+- [x] Test book cover images (loading, fallback placeholders)
+- [x] Test sortable table functionality
+- [x] Test word detail modals from both tables
+- [x] Test modal dismissible behavior
+- [x] Verify component unification
+- [x] Test responsive design
 
 **Acceptance Criteria:**
 - ✅ Book recommendation cards display cover images with fallback placeholders
