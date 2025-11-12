@@ -4,7 +4,7 @@ uvicorn[standard]==0.24.0
 
 # Database
 sqlalchemy>=2.0.25  # 2.0.25+ required for Python 3.13 compatibility
-psycopg2-binary==2.9.9
+psycopg2-binary>=2.9.10  # 2.9.10+ required for Python 3.13 compatibility
 
 # Environment variables
 python-dotenv==1.0.0
