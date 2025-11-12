@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { api } from "@/lib/api";
+import Image from "next/image";
+import { api, openLibraryApi } from "@/lib/api";
 import { StudentDetailResponse } from "@/lib/types";
 import {
   Card,
@@ -18,7 +19,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { BookDetailModal } from "@/components/ui/book-detail-modal";
 import { cn } from "@/lib/utils";
+import { BookOpen, Loader2 } from "lucide-react";
 
 export default function StudentDetailPage() {
   const params = useParams();
@@ -33,6 +36,11 @@ export default function StudentDetailPage() {
   // Dismissal state
   const [dismissingWordId, setDismissingWordId] = useState<number | null>(null);
   const [dismissingWords, setDismissingWords] = useState<Set<number>>(new Set());
+  
+  // Book modal state
+  const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
+  const [bookCovers, setBookCovers] = useState<Map<number, string | null>>(new Map());
+  const [loadingCovers, setLoadingCovers] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!studentId || isNaN(studentId)) {
@@ -63,6 +71,42 @@ export default function StudentDetailPage() {
 
     fetchStudent();
   }, [studentId]);
+
+  // Fetch book covers when student data loads
+  useEffect(() => {
+    if (student?.book_recommendations) {
+      student.book_recommendations.forEach((book) => {
+        if (!bookCovers.has(book.book_id) && !loadingCovers.has(book.book_id)) {
+          fetchBookCover(book.book_id, book.title, book.author);
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [student]);
+
+  const fetchBookCover = async (bookId: number, title: string, author: string | null) => {
+    setLoadingCovers((prev) => new Set(prev).add(bookId));
+    try {
+      const details = await openLibraryApi.getBookDetails(title, author);
+      setBookCovers((prev) => {
+        const next = new Map(prev);
+        next.set(bookId, details.coverUrl);
+        return next;
+      });
+    } catch (err) {
+      setBookCovers((prev) => {
+        const next = new Map(prev);
+        next.set(bookId, null);
+        return next;
+      });
+    } finally {
+      setLoadingCovers((prev) => {
+        const next = new Set(prev);
+        next.delete(bookId);
+        return next;
+      });
+    }
+  };
 
   const handleDismissClick = (wordId: number) => {
     setDismissingWordId(wordId);
@@ -247,39 +291,74 @@ export default function StudentDetailPage() {
               <p className="text-muted-foreground">No book recommendations available.</p>
             ) : (
               <div className="grid gap-4 md:grid-cols-3">
-                {student.book_recommendations.map((book) => (
-                  <Card key={book.book_id} className="border-2">
-                    <CardHeader>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg mb-1">{book.title}</CardTitle>
-                          {book.author && (
-                            <CardDescription className="text-xs">
-                              by {book.author}
-                            </CardDescription>
+                {student.book_recommendations.map((book) => {
+                  const coverUrl = bookCovers.get(book.book_id);
+                  const isLoadingCover = loadingCovers.has(book.book_id);
+                  
+                  return (
+                    <Card
+                      key={book.book_id}
+                      className="border-2 cursor-pointer hover:border-primary transition-colors"
+                      onClick={() => setSelectedBookId(book.book_id)}
+                    >
+                      <CardHeader>
+                        {/* Book Cover */}
+                        <div className="mb-3 flex justify-center">
+                          {isLoadingCover ? (
+                            <div className="w-32 h-48 bg-muted rounded flex items-center justify-center">
+                              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            </div>
+                          ) : coverUrl ? (
+                            <div className="relative w-32 h-48 rounded overflow-hidden shadow-md">
+                              <Image
+                                src={coverUrl}
+                                alt={`Cover of ${book.title}`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-32 h-48 bg-muted rounded flex flex-col items-center justify-center p-2 shadow-md">
+                              <BookOpen className="h-10 w-10 text-muted-foreground mb-1" />
+                              <p className="text-xs text-muted-foreground text-center font-medium line-clamp-2">
+                                {book.title}
+                              </p>
+                            </div>
                           )}
                         </div>
-                        <div className="ml-2 text-right">
-                          <div className={cn("text-sm font-semibold", getMatchScoreColor(book.match_score))}>
-                            {(book.match_score * 100).toFixed(0)}% match
+                        
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg mb-1">{book.title}</CardTitle>
+                            {book.author && (
+                              <CardDescription className="text-xs">
+                                by {book.author}
+                              </CardDescription>
+                            )}
+                          </div>
+                          <div className="ml-2 text-right">
+                            <div className={cn("text-sm font-semibold", getMatchScoreColor(book.match_score))}>
+                              {(book.match_score * 100).toFixed(0)}% match
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      {book.reading_level && (
-                        <p className="text-xs text-muted-foreground">
-                          Reading Level: {book.reading_level.toFixed(1)}
-                        </p>
-                      )}
-                      <div className="text-sm">
-                        <p className="font-medium">
-                          Known: {(book.known_words_percent * 100).toFixed(1)}% | New: {((1 - book.known_words_percent) * 100).toFixed(1)}% ({book.new_words_count} words)
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {book.reading_level && (
+                          <p className="text-xs text-muted-foreground">
+                            Reading Level: {book.reading_level.toFixed(1)}
+                          </p>
+                        )}
+                        <div className="text-sm">
+                          <p className="font-medium">
+                            Known: {(book.known_words_percent * 100).toFixed(1)}% | New: {((1 - book.known_words_percent) * 100).toFixed(1)}% ({book.new_words_count} words)
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -430,6 +509,15 @@ export default function StudentDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Book Detail Modal */}
+      {selectedBookId && student.book_recommendations.find((b) => b.book_id === selectedBookId) && (
+        <BookDetailModal
+          book={student.book_recommendations.find((b) => b.book_id === selectedBookId)!}
+          open={selectedBookId !== null}
+          onOpenChange={(open) => !open && setSelectedBookId(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import Image from "next/image";
+import { api, openLibraryApi } from "@/lib/api";
 import {
   ClassStatsResponse,
   ClassRecommendationResponse,
@@ -10,16 +11,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { BookDetailModal } from "@/components/ui/book-detail-modal";
+import { WordDetailModal } from "@/components/ui/word-detail-modal";
+import { VocabularyTableCard } from "@/components/ui/vocabulary-table-card";
+import { cn } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { BookOpen, AlertTriangle, TrendingUp, Users } from "lucide-react";
+import { BookOpen, AlertTriangle, TrendingUp, Users, Loader2 } from "lucide-react";
 
 export default function ClassOverviewPage() {
   const [classStats, setClassStats] = useState<ClassStatsResponse | null>(null);
@@ -28,6 +25,14 @@ export default function ClassOverviewPage() {
   const [loadingRecommendations, setLoadingRecommendations] = useState(true);
   const [errorStats, setErrorStats] = useState<string | null>(null);
   const [errorRecommendations, setErrorRecommendations] = useState<string | null>(null);
+  
+  // Book modal state
+  const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
+  const [bookCovers, setBookCovers] = useState<Map<number, string | null>>(new Map());
+  const [loadingCovers, setLoadingCovers] = useState<Set<number>>(new Set());
+  
+  // Word modal state
+  const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [isDark, setIsDark] = useState(false);
 
   // Detect dark mode
@@ -48,6 +53,42 @@ export default function ClassOverviewPage() {
     fetchClassStats();
     fetchClassRecommendations();
   }, []);
+
+  // Fetch book covers when recommendations load
+  useEffect(() => {
+    if (classRecommendations.length > 0) {
+      classRecommendations.forEach((book) => {
+        if (!bookCovers.has(book.book_id) && !loadingCovers.has(book.book_id)) {
+          fetchBookCover(book.book_id, book.title, book.author);
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classRecommendations]);
+
+  const fetchBookCover = async (bookId: number, title: string, author: string | null) => {
+    setLoadingCovers((prev) => new Set(prev).add(bookId));
+    try {
+      const details = await openLibraryApi.getBookDetails(title, author);
+      setBookCovers((prev) => {
+        const next = new Map(prev);
+        next.set(bookId, details.coverUrl);
+        return next;
+      });
+    } catch (err) {
+      setBookCovers((prev) => {
+        const next = new Map(prev);
+        next.set(bookId, null);
+        return next;
+      });
+    } finally {
+      setLoadingCovers((prev) => {
+        const next = new Set(prev);
+        next.delete(bookId);
+        return next;
+      });
+    }
+  };
 
   const fetchClassStats = async () => {
     try {
@@ -239,47 +280,75 @@ export default function ClassOverviewPage() {
           </Alert>
         ) : classRecommendations.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {classRecommendations.map((book) => (
-              <Card key={book.book_id} className="border-2 hover:border-primary transition-colors">
-                <CardHeader>
-                  <div className="flex gap-4">
-                    <div className="h-24 w-16 bg-muted rounded flex items-center justify-center">
-                      <BookOpen className="h-8 w-8 text-muted-foreground" />
+            {classRecommendations.map((book) => {
+              const coverUrl = bookCovers.get(book.book_id);
+              const isLoadingCover = loadingCovers.has(book.book_id);
+              
+              return (
+                <Card
+                  key={book.book_id}
+                  className="border-2 hover:border-primary transition-colors cursor-pointer"
+                  onClick={() => setSelectedBookId(book.book_id)}
+                >
+                  <CardHeader>
+                    <div className="flex gap-4">
+                      {/* Book Cover */}
+                      <div className="flex-shrink-0">
+                        {isLoadingCover ? (
+                          <div className="h-24 w-16 bg-muted rounded flex items-center justify-center">
+                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                          </div>
+                        ) : coverUrl ? (
+                          <div className="relative h-24 w-16 rounded overflow-hidden shadow-md">
+                            <Image
+                              src={coverUrl}
+                              alt={`Cover of ${book.title}`}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-24 w-16 bg-muted rounded flex items-center justify-center">
+                            <BookOpen className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-xl">{book.title}</CardTitle>
+                        {book.author && (
+                          <CardDescription className="mt-1">by {book.author}</CardDescription>
+                        )}
+                        {book.reading_level && (
+                          <div className="text-sm text-muted-foreground mt-1">
+                            Grade Level: {book.reading_level.toFixed(1)}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-xl">{book.title}</CardTitle>
-                      {book.author && (
-                        <CardDescription className="mt-1">by {book.author}</CardDescription>
-                      )}
-                      {book.reading_level && (
-                        <div className="text-sm text-muted-foreground mt-1">
-                          Grade Level: {book.reading_level.toFixed(1)}
-                        </div>
-                      )}
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">
+                        Recommended for {book.students_recommended_count} of{" "}
+                        {classStats?.total_students || "?"} students
+                      </span>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">
-                      Recommended for {book.students_recommended_count} of{" "}
-                      {classStats?.total_students || "?"} students
-                    </span>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">Average Match Score</span>
-                      <span className="font-semibold">{(book.avg_match_score * 100).toFixed(0)}%</span>
+                    <div>
+                      <div className="flex items-center justify-between text-sm mb-2">
+                        <span className="text-muted-foreground">Average Match Score</span>
+                        <span className="font-semibold">{(book.avg_match_score * 100).toFixed(0)}%</span>
+                      </div>
+                      <Progress value={book.avg_match_score * 100} className="h-2" />
                     </div>
-                    <Progress value={book.avg_match_score * 100} className="h-2" />
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    This book is recommended for most students in your class, offering appropriate
-                    vocabulary challenge for {book.students_recommended_count} students.
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+                    <p className="text-sm text-muted-foreground">
+                      This book is recommended for most students in your class, offering appropriate
+                      vocabulary challenge for {book.students_recommended_count} students.
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         ) : (
           <Card>
@@ -296,94 +365,86 @@ export default function ClassOverviewPage() {
         <section>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Section 3: Vocabulary Gaps */}
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">Top 10 Words Students Need to Learn</h2>
-              <Card>
-                <CardContent className="pt-6">
-                  {classStats.top_missing_words.length > 0 ? (
-                    <>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Focus instruction on these words to help the most students
-                      </p>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Word</TableHead>
-                            <TableHead className="text-right">Total Students</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {classStats.top_missing_words.map((item, index) => (
-                            <TableRow key={index}>
-                              <TableCell className="font-medium">{item.word}</TableCell>
-                              <TableCell className="text-right">{item.students_missing}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </>
-                  ) : (
-                    <div className="py-12 text-center">
-                      <p className="text-muted-foreground">No vocabulary gaps detected</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <VocabularyTableCard
+              title="Top 10 Words Students Need to Learn"
+              description="Focus instruction on these words to help the most students"
+              emptyMessage="No vocabulary gaps detected"
+              columns={[
+                { header: "Word", align: "left" },
+                { header: "Total Students", align: "right" },
+              ]}
+              rows={classStats.top_missing_words.map((item, index) => ({
+                key: index,
+                cells: [
+                  { content: item.word, className: "font-medium" },
+                  { content: item.students_missing, className: "text-right" },
+                ],
+                onClick: () => setSelectedWord(item.word),
+                rowClassName: "cursor-pointer hover:bg-muted/50",
+              }))}
+            />
 
             {/* Section 4: Common Mistakes */}
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">Words Frequently Used Incorrectly</h2>
-              <Card>
-                <CardContent className="pt-6">
-                  {classStats.commonly_misused_words.length > 0 ? (
-                    <>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Review these words with the class to address systematic misunderstandings
-                      </p>
-                      <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Word</TableHead>
-                          <TableHead className="text-right">Total Misuses</TableHead>
-                          {classStats.commonly_misused_words.some((w) => w.students_affected) && (
-                            <TableHead className="text-right">Students Affected</TableHead>
-                          )}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {classStats.commonly_misused_words.map((item, index) => {
-                          const isThrough = item.word.toLowerCase() === "through";
-                          return (
-                            <TableRow
-                              key={index}
-                              className={isThrough ? "bg-yellow-50 dark:bg-yellow-950/20" : ""}
-                            >
-                              <TableCell className={`font-medium ${isThrough ? "font-bold" : ""}`}>
-                                {item.word}
-                              </TableCell>
-                              <TableCell className="text-right">{item.misuse_count}</TableCell>
-                              {classStats.commonly_misused_words.some((w) => w.students_affected) && (
-                                <TableCell className="text-right">
-                                  {item.students_affected || "-"}
-                                </TableCell>
-                              )}
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                    </>
-                  ) : (
-                    <div className="py-12 text-center">
-                      <p className="text-muted-foreground">No common mistakes found</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <VocabularyTableCard
+              title="Words Frequently Used Incorrectly"
+              description="Review these words with the class to address systematic misunderstandings"
+              emptyMessage="No common mistakes found"
+              columns={[
+                { header: "Word", align: "left" },
+                { header: "Total Misuses", align: "right" },
+                ...(classStats.commonly_misused_words.some((w) => w.students_affected)
+                  ? [{ header: "Students Affected", align: "right" as const }]
+                  : []),
+              ]}
+              rows={classStats.commonly_misused_words.map((item, index) => {
+                const isThrough = item.word.toLowerCase() === "through";
+                return {
+                  key: index,
+                  cells: [
+                    {
+                      content: item.word,
+                      className: cn("font-medium", isThrough && "font-bold"),
+                    },
+                    { content: item.misuse_count, className: "text-right" },
+                    ...(classStats.commonly_misused_words.some((w) => w.students_affected)
+                      ? [
+                          {
+                            content: item.students_affected || "-",
+                            className: "text-right",
+                          },
+                        ]
+                      : []),
+                  ],
+                  onClick: () => setSelectedWord(item.word),
+                  rowClassName: cn(
+                    "cursor-pointer hover:bg-muted/50",
+                    isThrough && "bg-yellow-50 dark:bg-yellow-950/20"
+                  ),
+                };
+              })}
+            />
           </div>
         </section>
+      )}
+
+      {/* Book Detail Modal */}
+      {selectedBookId && classRecommendations.find((b) => b.book_id === selectedBookId) && (
+        <BookDetailModal
+          book={classRecommendations.find((b) => b.book_id === selectedBookId)!}
+          open={selectedBookId !== null}
+          onOpenChange={(open) => !open && setSelectedBookId(null)}
+          isClassView={true}
+          totalStudents={classStats?.total_students}
+        />
+      )}
+
+      {/* Word Detail Modal */}
+      {selectedWord && (
+        <WordDetailModal
+          word={selectedWord}
+          open={selectedWord !== null}
+          onOpenChange={(open) => !open && setSelectedWord(null)}
+        />
       )}
     </div>
   );

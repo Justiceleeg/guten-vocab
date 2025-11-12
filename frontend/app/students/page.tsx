@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { StudentListResponse } from "@/lib/types";
@@ -13,12 +13,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { ArrowUp, ArrowDown } from "lucide-react";
+
+type SortDirection = "asc" | "desc";
 
 export default function StudentsPage() {
   const router = useRouter();
   const [students, setStudents] = useState<StudentListResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc"); // Default: highest first
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -60,6 +64,23 @@ export default function StudentsPage() {
   const handleRowClick = (studentId: number) => {
     router.push(`/students/${studentId}`);
   };
+
+  const handleSortClick = () => {
+    setSortDirection((prev) => (prev === "desc" ? "asc" : "desc"));
+  };
+
+  // Sort students based on current sort direction
+  const sortedStudents = useMemo(() => {
+    const sorted = [...students];
+    sorted.sort((a, b) => {
+      if (sortDirection === "desc") {
+        return b.vocab_mastery_percent - a.vocab_mastery_percent;
+      } else {
+        return a.vocab_mastery_percent - b.vocab_mastery_percent;
+      }
+    });
+    return sorted;
+  }, [students, sortDirection]);
 
   if (loading) {
     return (
@@ -107,11 +128,23 @@ export default function StudentsPage() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Reading Level</TableHead>
-              <TableHead>Grade Mastery %</TableHead>
+              <TableHead>
+                <button
+                  onClick={handleSortClick}
+                  className="flex items-center gap-2 hover:text-foreground transition-colors"
+                >
+                  Grade Mastery %
+                  {sortDirection === "desc" ? (
+                    <ArrowDown className="h-4 w-4" />
+                  ) : (
+                    <ArrowUp className="h-4 w-4" />
+                  )}
+                </button>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {students.map((student) => (
+            {sortedStudents.map((student) => (
               <TableRow
                 key={student.id}
                 onClick={() => handleRowClick(student.id)}
