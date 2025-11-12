@@ -7,6 +7,7 @@ import {
 } from "./types";
 
 // Create axios instance with base configuration
+// Default fallback for local development only - production should always set NEXT_PUBLIC_API_URL
 const apiClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
   headers: {

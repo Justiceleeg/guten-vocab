@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Get database URL from environment
+# Default fallback for local development only - production should always set DATABASE_URL
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost:5432/vocab_engine")
 
 # Create SQLAlchemy engine
