@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function Navigation() {
   const pathname = usePathname();
@@ -19,7 +20,8 @@ export function Navigation() {
           <Link href="/" className="text-xl font-bold">
             Guten Vocab
           </Link>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
             {navLinks.map((link) => (
               <Link
                 key={link.href}
