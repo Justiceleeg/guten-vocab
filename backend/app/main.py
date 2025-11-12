@@ -26,10 +26,14 @@ allowed_origins = [
 # Add production frontend URL from environment variable if set
 frontend_url = os.getenv("FRONTEND_URL")
 if frontend_url:
-    # Ensure URL has protocol
-    if not frontend_url.startswith("http"):
-        frontend_url = f"https://{frontend_url}"
-    allowed_origins.append(frontend_url)
+    # Handle multiple URLs (comma-separated) or single URL
+    urls = [url.strip() for url in frontend_url.split(",")]
+    for url in urls:
+        if url:
+            # Ensure URL has protocol
+            if not url.startswith("http"):
+                url = f"https://{url}"
+            allowed_origins.append(url)
 
 app.add_middleware(
     CORSMiddleware,
