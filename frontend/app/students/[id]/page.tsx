@@ -239,7 +239,7 @@ export default function StudentDetailPage() {
           <CardHeader>
             <CardTitle>Book Recommendations</CardTitle>
             <CardDescription>
-              Personalized book suggestions based on vocabulary profile
+              Personalized book suggestions based on vocabulary profile. These books will challenge {student.name} with new vocabulary words while reinforcing words they already know.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -273,11 +273,8 @@ export default function StudentDetailPage() {
                         </p>
                       )}
                       <div className="text-sm">
-                        <p className="font-medium mb-1">
+                        <p className="font-medium">
                           Known: {(book.known_words_percent * 100).toFixed(1)}% | New: {((1 - book.known_words_percent) * 100).toFixed(1)}% ({book.new_words_count} words)
-                        </p>
-                        <p className="text-muted-foreground text-xs">
-                          This book will challenge you with {book.new_words_count} new vocabulary words while reinforcing words you already know.
                         </p>
                       </div>
                     </CardContent>
