@@ -179,6 +179,63 @@ def load_student_personas() -> List[Dict]:
         return json.load(f)
 
 
+def determine_student_misuses(personas: List[Dict]) -> Dict[str, List[str]]:
+    """
+    Determine which students misuse words based on their reading level.
+    
+    Distribution strategy:
+    - Level 5 (struggling): 60% chance, 2-3 words
+    - Level 6 (below grade): 30% chance, 1-2 words
+    - Level 7 (at grade): 10% chance, 1 word
+    - Level 8 (above grade): 5% chance, 1 word
+    
+    Returns:
+        Dictionary mapping student name to list of words they'll misuse
+    """
+    # Vocabulary words suitable for misuse (common confusions at 7th grade level)
+    misuse_words = [
+        "through/thorough",  # Classic confusion
+        "comprise/compose",  # Often reversed
+        "literally",  # Overused as emphasis
+        "irony/coincidence",  # Frequently confused
+        "nostalgic",  # Often used with wrong preposition
+        "peruse/skim",  # Thought to mean opposite
+        "infamous/famous",  # Confused meanings
+        "infer/imply",  # Subtle distinction
+        "disinterested/uninterested",  # Different meanings
+        "affect/effect",  # Common grammar error
+    ]
+    
+    student_misuses = {}
+    
+    for persona in personas:
+        reading_level = persona["reading_level"]
+        
+        # Determine probability and word count based on reading level
+        if reading_level == 5:
+            probability = 0.60
+            word_count_range = (2, 3)
+        elif reading_level == 6:
+            probability = 0.30
+            word_count_range = (1, 2)
+        elif reading_level == 7:
+            probability = 0.10
+            word_count_range = (1, 1)
+        else:  # Level 8
+            probability = 0.05
+            word_count_range = (1, 1)
+        
+        # Randomly determine if this student misuses words
+        if random.random() < probability:
+            # Select random number of words in range
+            num_words = random.randint(*word_count_range)
+            # Select random words for this student to misuse
+            selected_words = random.sample(misuse_words, min(num_words, len(misuse_words)))
+            student_misuses[persona["name"]] = selected_words
+    
+    return student_misuses
+
+
 def generate_classroom_transcript(client: OpenAI, personas: List[Dict]) -> str:
     """
     Phase 2: Generate full-day classroom transcript (~40,000 words).
@@ -187,15 +244,33 @@ def generate_classroom_transcript(client: OpenAI, personas: List[Dict]) -> str:
     - Multiple subjects (Reading, Math, Science, Social Studies)
     - Natural dialogue with teacher and students
     - Pre-labeled speakers with timestamps
-    - "through" misuse in 15-20 students' speech
+    - Persona-based vocabulary misuses (more misuses for struggling students)
     """
     print("\n" + "=" * 70)
     print("Phase 2: Classroom Transcript Generation")
     print("=" * 70)
     
-    # Select 15-20 students who will misuse "through"
-    students_to_misuse = random.sample(personas, random.randint(15, 20))
-    misuse_student_names = [p["name"] for p in students_to_misuse]
+    # Determine which students misuse which words based on reading level
+    student_misuses = determine_student_misuses(personas)
+    
+    # Print distribution
+    print(f"\n📊 Misuse Distribution (based on reading level):")
+    misuse_counts = {}
+    for student_name, words in student_misuses.items():
+        count = len(words)
+        misuse_counts[count] = misuse_counts.get(count, 0) + 1
+    print(f"   Students with 0 misused words: {len(personas) - len(student_misuses)}")
+    for count in sorted(misuse_counts.keys()):
+        print(f"   Students with {count} misused word(s): {misuse_counts[count]}")
+    print(f"   Total students with misuses: {len(student_misuses)}/{len(personas)}")
+    
+    # Extract just the misuse patterns for prompt (first few as examples)
+    misuse_examples = []
+    for student_name, words in list(student_misuses.items())[:5]:
+        persona = next(p for p in personas if p["name"] == student_name)
+        misuse_examples.append(f"{student_name} (Level {persona['reading_level']}): {', '.join(words)}")
+    
+    misuse_student_names = list(student_misuses.keys())
     
     # Build prompt
     personas_text = "\n".join([
@@ -203,7 +278,8 @@ def generate_classroom_transcript(client: OpenAI, personas: List[Dict]) -> str:
         for p in personas
     ])
     
-    misuse_text = ", ".join(misuse_student_names[:5])  # Show first 5 as examples
+    # Build misuse instruction text
+    misuse_text = "\n".join(misuse_examples) if misuse_examples else "No specific misuses required"
     
     print("\n📝 Generating transcript (this may take several minutes)...")
     print("   Target: ~40,000 words")
@@ -283,7 +359,7 @@ PREVIOUS CONTEXT (last few lines):
 CONTINUE with more dialogue for this same time period and subject ({chunk['subject']}).
 - Keep the same format with timestamps and speaker labels
 - Continue the natural dialogue and discussions
-- Include more "through" misuses if applicable
+- Include persona-based vocabulary misuses from students who struggle: {misuse_text}
 - Generate approximately 4000-5000 more words
 - Make it flow naturally from the previous content"""
                 else:
@@ -306,11 +382,12 @@ REQUIREMENTS:
    - Include natural speech patterns: "um", "like", pauses, interruptions
    - Students with lower reading levels use simpler vocabulary
    - Students with higher reading levels use more complex vocabulary
-3. Word misuse: Some students should naturally misuse "through" instead of "thorough":
-   Examples: {misuse_text}
-   - Use it in contexts like "I need to be more through with my work" (should be "thorough")
-   - Make it sound natural, not forced
-   - Include it 2-4 times in this segment
+3. Vocabulary misuses (persona-based, more misuses for struggling students):
+   {misuse_text}
+   - Make these misuses sound completely natural in conversation
+   - Examples: "through" instead of "thorough", "literally" as emphasis, "irony" instead of "coincidence"
+   - Don't force misuses - only include where it flows naturally
+   - Aim for 2-4 misuses per segment distributed among the appropriate students
 4. Realism: Include classroom management moments, side conversations, questions, answers
 
 OUTPUT FORMAT:
@@ -449,15 +526,25 @@ def generate_student_essays(client: OpenAI, personas: List[Dict]) -> List[Dict]:
     Each essay:
     - Matches student's reading level
     - Has varied topics (book analysis, personal narrative)
-    - Includes "through" misuse in ~10 essays
+    - Includes persona-based vocabulary misuses (more for struggling students)
     """
     print("\n" + "=" * 70)
     print("Phase 3: Student Essay Generation")
     print("=" * 70)
     
-    # Select ~10 students who will misuse "through" in their essays
-    students_to_misuse = random.sample(personas, random.randint(8, 12))
-    misuse_student_ids = {p["id"] for p in students_to_misuse}
+    # Determine which students misuse which words (same logic as transcript)
+    student_misuses = determine_student_misuses(personas)
+    
+    # Print distribution
+    print(f"\n📊 Essay Misuse Distribution (based on reading level):")
+    misuse_counts = {}
+    for student_name, words in student_misuses.items():
+        count = len(words)
+        misuse_counts[count] = misuse_counts.get(count, 0) + 1
+    print(f"   Students with 0 misused words: {len(personas) - len(student_misuses)}")
+    for count in sorted(misuse_counts.keys()):
+        print(f"   Students with {count} misused word(s): {misuse_counts[count]}")
+    print(f"   Total students with misuses: {len(student_misuses)}/{len(personas)}")
     
     # Essay topics
     topics = [
@@ -494,11 +581,20 @@ def generate_student_essays(client: OpenAI, personas: List[Dict]) -> List[Dict]:
         # Select topic
         topic = random.choice(topics)
         
-        # Determine if this student should misuse "through"
-        should_misuse = persona["id"] in misuse_student_ids
+        # Determine if this student misuses words and which ones
+        student_misuse_words = student_misuses.get(persona["name"], [])
         misuse_instruction = ""
-        if should_misuse:
-            misuse_instruction = ' Include a natural misuse of "through" instead of "thorough" (e.g., "I need to be more through in my analysis").'
+        if student_misuse_words:
+            # Build natural misuse instruction
+            misuse_examples = []
+            for word_pattern in student_misuse_words:
+                if "/" in word_pattern:
+                    wrong, right = word_pattern.split("/")
+                    misuse_examples.append(f'"{wrong}" instead of "{right}"')
+                else:
+                    misuse_examples.append(f'"{word_pattern}" incorrectly')
+            
+            misuse_instruction = f' Include {len(student_misuse_words)} natural vocabulary misuse(s): {", ".join(misuse_examples)}. Make these errors sound like a student who is trying to use vocabulary they don\'t fully understand yet.'
         
         prompt = f"""Write a realistic 7th grade student essay (~300 words).
 
@@ -542,7 +638,8 @@ OUTPUT: Just the essay text, no labels or metadata."""
                 "essay": essay_text,
                 "word_count": word_count,
                 "topic": topic,
-                "has_misuse": should_misuse
+                "has_misuse": len(student_misuse_words) > 0,
+                "misuse_words": student_misuse_words
             }
             
             # Sanitize filename
@@ -586,7 +683,8 @@ OUTPUT: Just the essay text, no labels or metadata."""
                         "essay": essay_text,
                         "word_count": word_count,
                         "topic": topic,
-                        "has_misuse": should_misuse
+                        "has_misuse": len(student_misuse_words) > 0,
+                        "misuse_words": student_misuse_words
                     }
                     safe_name = persona["name"].replace(" ", "_").lower()
                     essay_filename = f"student_{persona['id']}_{safe_name}.json"

@@ -40,20 +40,81 @@ def get_student_vocabulary_profile(db: Session, student_id: int) -> Dict[int, in
     """
     Get student's vocabulary profile (known words).
     
+    This includes:
+    - Words used correctly in transcript/essay (correct_usage_count > 0)
+    - Baseline words based on reading level (assumed knowledge)
+    - Prerequisite grade levels: Students know ~95% of words from grades below their assigned grade
+    
+    For a 7th grader:
+    - ~95% of 5th grade words (prerequisite)
+    - ~95% of 6th grade words (prerequisite)
+    - ~75% of 7th grade words (current grade, based on reading level)
+    - ~0% of 8th grade words (future grade, unless advanced)
+    
     Args:
         db: Database session
         student_id: Student ID
         
     Returns:
-        Dictionary mapping word_id -> correct_usage_count
-        Only includes words where correct_usage_count > 0
+        Dictionary mapping word_id -> usage_count (1 for baseline words, actual count for used words)
     """
+    # Get student info
+    student = db.query(Student).filter(Student.id == student_id).first()
+    if not student:
+        return {}
+    
+    # Get words used correctly in transcript/essay
     student_vocab = db.query(StudentVocabulary).filter(
         StudentVocabulary.student_id == student_id,
         StudentVocabulary.correct_usage_count > 0
     ).all()
     
-    return {sv.word_id: sv.correct_usage_count for sv in student_vocab}
+    used_words = {sv.word_id: sv.correct_usage_count for sv in student_vocab}
+    
+    # Get baseline words based on reading level
+    reading_level = int(round(student.actual_reading_level))
+    assigned_grade = student.assigned_grade
+    
+    # Baseline percentages for current grade based on reading level
+    current_grade_baseline_percentages = {
+        5: 0.40,
+        6: 0.55,
+        7: 0.75,
+        8: 0.85,
+    }
+    current_grade_baseline = current_grade_baseline_percentages.get(reading_level, 0.60)
+    
+    # Prerequisite grade baseline (students should know most/all prerequisite words)
+    prerequisite_baseline = 0.95  # 95% of prerequisite grade words
+    
+    # Get all vocabulary words for prerequisite grades and current grade
+    # For a 7th grader, this includes 5th, 6th, and 7th grade words
+    all_grade_words = db.query(VocabularyWord).filter(
+        VocabularyWord.grade_level <= assigned_grade
+    ).all()
+    
+    # Calculate baseline words known
+    baseline_words = {}
+    for word in all_grade_words:
+        word_grade = word.grade_level
+        
+        # Prerequisite grades: assume high baseline knowledge
+        if word_grade < assigned_grade:
+            word_hash = hash(f"{student_id}_{word.id}") % 100
+            if word_hash < (prerequisite_baseline * 100):
+                baseline_words[word.id] = 1
+        
+        # Current grade: baseline varies by reading level
+        elif word_grade == assigned_grade:
+            word_hash = hash(f"{student_id}_{word.id}") % 100
+            if word_hash < (current_grade_baseline * 100):
+                baseline_words[word.id] = 1
+    
+    # Combine baseline words with words from transcript/essay
+    # Words from transcript/essay take precedence (use actual count)
+    all_known_words = {**baseline_words, **used_words}
+    
+    return all_known_words
 
 
 def get_book_vocabulary(db: Session, book_id: int) -> Dict[int, int]:
@@ -108,40 +169,65 @@ def calculate_vocabulary_overlap(
 
 def calculate_match_score(
     known_percent: float,
+    new_words_count: int,
     book_reading_level: Optional[float],
     student_reading_level: float
 ) -> float:
     """
     Calculate match score for a book-student pair.
     
+    Strategy: Optimize for both high percentage of known words AND high count of new words.
+    This ensures students can comprehend the book (high % known) while learning new vocabulary (high count of new words).
+    
     Algorithm:
-    - Goal: ~50% known, ~50% new for optimal challenge
-    - Penalize if too easy (>80% known) or too hard (<30% known)
-    - Reward books close to target ratio
+    - Reward higher percentage of known words (for comprehension/confidence)
+    - Reward higher count of new words (for vocabulary expansion)
+    - Penalize if too easy (>85% known) or too hard (<40% known)
     - Apply reading level bonus (prefers books at student's level ± 1 grade)
     
     Args:
         known_percent: Percentage of book vocabulary that student knows (0-1)
+        new_words_count: Number of new vocabulary words in the book
         book_reading_level: Book's reading level (grade level)
         student_reading_level: Student's reading level (grade level)
         
     Returns:
         Match score between 0 and 1
     """
-    # Goal: ~50% known, ~50% new for optimal challenge
-    target_known_percent = 0.5
     known_percent = max(0.0, min(1.0, known_percent))  # Clamp to [0, 1]
     
-    # Penalize if too easy (>80% known) or too hard (<30% known)
-    if known_percent > 0.8:
-        penalty = (known_percent - 0.8) * 2
-    elif known_percent < 0.3:
-        penalty = (0.3 - known_percent) * 2
+    # Penalize if too easy (>85% known) or too hard (<40% known)
+    if known_percent > 0.85:
+        # Too easy - heavy penalty
+        penalty = (known_percent - 0.85) * 3
+    elif known_percent < 0.40:
+        # Too hard - heavy penalty
+        penalty = (0.40 - known_percent) * 3
     else:
         penalty = 0
     
-    # Reward books close to target
-    closeness_to_target = 1 - abs(known_percent - target_known_percent)
+    # Reward higher percentage of known words (for comprehension)
+    # Optimal range: 50-75% known
+    if 0.50 <= known_percent <= 0.75:
+        known_score = 1.0  # Perfect range
+    elif known_percent < 0.50:
+        # Below optimal, but still acceptable (40-50%)
+        known_score = known_percent / 0.50  # Scale from 0.8 to 1.0
+    else:
+        # Above optimal but acceptable (75-85%)
+        known_score = 1.0 - ((known_percent - 0.75) / 0.10) * 0.2  # Scale from 1.0 to 0.8
+    
+    # Reward higher count of new words (for vocabulary expansion)
+    # Normalize new word count (assume max ~50 new words is excellent)
+    # Books with 10+ new words are good, 20+ is excellent
+    if new_words_count >= 20:
+        new_words_score = 1.0
+    elif new_words_count >= 10:
+        new_words_score = 0.7 + (new_words_count - 10) / 10 * 0.3  # Scale from 0.7 to 1.0
+    elif new_words_count >= 5:
+        new_words_score = 0.4 + (new_words_count - 5) / 5 * 0.3  # Scale from 0.4 to 0.7
+    else:
+        new_words_score = new_words_count / 5 * 0.4  # Scale from 0 to 0.4
     
     # Reading level match bonus
     if book_reading_level is not None:
@@ -151,8 +237,11 @@ def calculate_match_score(
         # If book has no reading level, give neutral score
         reading_level_score = 0.5
     
-    # Combine factors
-    match_score = (closeness_to_target * 0.6) + (reading_level_score * 0.3) - penalty
+    # Combine factors with weights:
+    # - 40% weight on known words percentage (comprehension)
+    # - 40% weight on new words count (vocabulary expansion)
+    # - 20% weight on reading level match
+    match_score = (known_score * 0.4) + (new_words_score * 0.4) + (reading_level_score * 0.2) - penalty
     match_score = max(0, min(1, match_score))  # Clamp to [0, 1]
     
     return match_score
@@ -200,16 +289,17 @@ def match_student_to_books(
         # Allow higher if vocabulary fit is exceptional (handled by match score)
         book_reading_level = book.reading_level
         
-        # Calculate match score
-        match_score = calculate_match_score(
-            overlap_percent,
-            book_reading_level,
-            student_reading_level
-        )
-        
         # Store match information
         known_words_percent = overlap_percent
         new_words_count = len(new_words)
+        
+        # Calculate match score (now includes new_words_count)
+        match_score = calculate_match_score(
+            known_words_percent,
+            new_words_count,
+            book_reading_level,
+            student_reading_level
+        )
         
         matches.append((book, match_score, known_words_percent, new_words_count))
     

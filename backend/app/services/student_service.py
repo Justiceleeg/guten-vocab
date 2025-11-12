@@ -17,9 +17,71 @@ from app.schemas.student import (
 )
 
 
+def _get_baseline_mastery_percent(reading_level: int) -> float:
+    """
+    Get baseline mastery percentage based on reading level.
+    
+    Baseline assumptions for 7th grade vocabulary:
+    - Reading level 5 (struggling): ~40% baseline mastery
+    - Reading level 6 (below grade): ~55% baseline mastery
+    - Reading level 7 (at grade): ~75% baseline mastery
+    - Reading level 8 (above grade): ~85% baseline mastery
+    
+    Args:
+        reading_level: Student's reading level (integer)
+        
+    Returns:
+        Baseline mastery percentage (0.0-1.0)
+    """
+    baseline_percentages = {
+        5: 0.40,
+        6: 0.55,
+        7: 0.75,
+        8: 0.85,
+    }
+    return baseline_percentages.get(reading_level, 0.60)
+
+
+def _calculate_baseline_words_known(
+    student_id: int,
+    grade_words: List[VocabularyWord],
+    baseline_percent: float
+) -> set:
+    """
+    Calculate baseline words known using deterministic hash.
+    
+    Args:
+        student_id: Student ID
+        grade_words: List of vocabulary words for the grade
+        baseline_percent: Baseline mastery percentage (0.0-1.0)
+        
+    Returns:
+        Set of word IDs that student knows at baseline
+    """
+    baseline_words_known = set()
+    for word in grade_words:
+        word_hash = hash(f"{student_id}_{word.id}") % 100
+        if word_hash < (baseline_percent * 100):
+            baseline_words_known.add(word.id)
+    return baseline_words_known
+
+
 def calculate_vocab_mastery_percent(student: Student, db: Session) -> float:
     """
     Calculate vocabulary mastery percentage for a student.
+    
+    This function assumes students have baseline knowledge based on their reading level
+    relative to their assigned grade, and the transcript/essay data is additive
+    (shows additional words they know beyond baseline).
+    
+    Baseline assumptions for 7th grade vocabulary:
+    - Reading level 5 (struggling): ~40% baseline mastery of 7th grade words
+    - Reading level 6 (below grade): ~55% baseline mastery of 7th grade words
+    - Reading level 7 (at grade): ~75% baseline mastery of 7th grade words
+    - Reading level 8 (above grade): ~85% baseline mastery of 7th grade words
+    
+    The transcript/essay data adds to this baseline, showing words they've demonstrated
+    knowledge of beyond what we'd expect from their reading level alone.
     
     Args:
         student: Student model instance
@@ -28,26 +90,54 @@ def calculate_vocab_mastery_percent(student: Student, db: Session) -> float:
     Returns:
         Percentage of grade-level vocabulary mastered (0-100)
     """
-    # Get all vocabulary words for the student's grade level
-    total_words = db.query(VocabularyWord).filter(
+    # Get all vocabulary words for the student's assigned grade level
+    grade_words = db.query(VocabularyWord).filter(
         VocabularyWord.grade_level == student.assigned_grade
-    ).count()
+    ).all()
     
+    total_words = len(grade_words)
     if total_words == 0:
         return 0.0
     
-    # Count words mastered (used correctly at least once)
-    words_mastered = db.query(StudentVocabulary).filter(
+    # Get student's reading level (round to nearest integer)
+    reading_level = int(round(student.actual_reading_level))
+    
+    # Get baseline percentage for student's reading level
+    baseline_percent = _get_baseline_mastery_percent(reading_level)
+    
+    # Get words student has used correctly in transcript/essay
+    student_vocab = db.query(StudentVocabulary).filter(
         StudentVocabulary.student_id == student.id,
         StudentVocabulary.correct_usage_count > 0
-    ).count()
+    ).all()
     
-    return (words_mastered / total_words) * 100.0
+    used_word_ids = {sv.word_id for sv in student_vocab}
+    
+    # Calculate baseline words known (based on reading level)
+    baseline_words_known = _calculate_baseline_words_known(
+        student.id, grade_words, baseline_percent
+    )
+    
+    # Combine baseline knowledge with words used in transcript/essay
+    # Words from transcript/essay are additive (show knowledge beyond baseline)
+    all_known_words = baseline_words_known | used_word_ids
+    
+    # Calculate mastery percentage
+    words_mastered = len(all_known_words)
+    mastery_percent = (words_mastered / total_words) * 100.0
+    
+    # Cap at 100% (shouldn't happen, but safety check)
+    return min(100.0, mastery_percent)
 
 
 def get_missing_words(student: Student, db: Session) -> List[str]:
     """
-    Get list of vocabulary words student hasn't used correctly.
+    Get list of vocabulary words student hasn't mastered.
+    
+    This uses the same baseline logic as calculate_vocab_mastery_percent:
+    - Assumes baseline knowledge based on reading level
+    - Adds words used correctly in transcript/essay
+    - Missing words are those not in either set
     
     Args:
         student: Student model instance
@@ -61,18 +151,32 @@ def get_missing_words(student: Student, db: Session) -> List[str]:
         VocabularyWord.grade_level == student.assigned_grade
     ).all()
     
-    # Get words student has used correctly
+    # Get student's reading level (round to nearest integer)
+    reading_level = int(round(student.actual_reading_level))
+    
+    # Get baseline percentage for student's reading level
+    baseline_percent = _get_baseline_mastery_percent(reading_level)
+    
+    # Get words student has used correctly in transcript/essay
     student_vocab = db.query(StudentVocabulary).filter(
         StudentVocabulary.student_id == student.id,
         StudentVocabulary.correct_usage_count > 0
     ).all()
     
-    known_word_ids = {sv.word_id for sv in student_vocab}
+    used_word_ids = {sv.word_id for sv in student_vocab}
     
-    # Find missing words
+    # Calculate baseline words known (same logic as calculate_vocab_mastery_percent)
+    baseline_words_known = _calculate_baseline_words_known(
+        student.id, grade_words, baseline_percent
+    )
+    
+    # Combine baseline with words from transcript/essay
+    all_known_word_ids = baseline_words_known | used_word_ids
+    
+    # Find missing words (not in baseline or transcript/essay)
     missing_words = [
         word.word for word in grade_words
-        if word.id not in known_word_ids
+        if word.id not in all_known_word_ids
     ]
     
     return missing_words
@@ -157,17 +261,35 @@ def get_student_by_id(db: Session, student_id: int) -> Optional[StudentDetailRes
     if not student:
         return None
     
-    # Calculate vocabulary mastery
+    # Calculate vocabulary mastery using the updated function
+    mastery_percent = calculate_vocab_mastery_percent(student, db)
+    
+    # Get total words and words mastered for response
     total_words = db.query(VocabularyWord).filter(
         VocabularyWord.grade_level == student.assigned_grade
     ).count()
     
-    words_mastered = db.query(StudentVocabulary).filter(
+    # Calculate words mastered (baseline + transcript/essay)
+    # This matches the logic in calculate_vocab_mastery_percent
+    reading_level = int(round(student.actual_reading_level))
+    baseline_percent = _get_baseline_mastery_percent(reading_level)
+    
+    grade_words = db.query(VocabularyWord).filter(
+        VocabularyWord.grade_level == student.assigned_grade
+    ).all()
+    
+    student_vocab = db.query(StudentVocabulary).filter(
         StudentVocabulary.student_id == student.id,
         StudentVocabulary.correct_usage_count > 0
-    ).count()
+    ).all()
+    used_word_ids = {sv.word_id for sv in student_vocab}
     
-    mastery_percent = (words_mastered / total_words * 100.0) if total_words > 0 else 0.0
+    baseline_words_known = _calculate_baseline_words_known(
+        student.id, grade_words, baseline_percent
+    )
+    
+    all_known_words = baseline_words_known | used_word_ids
+    words_mastered = len(all_known_words)
     
     vocab_mastery = VocabMasteryResponse(
         total_grade_level_words=total_words,

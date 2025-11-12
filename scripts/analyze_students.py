@@ -340,8 +340,27 @@ def analyze_vocabulary_usage(
     # Limit to 2 sentences for analysis
     analysis_sentences = sentences[:2]
     
-    prompt = f"""Analyze if the student correctly uses the word "{vocab_word}" in these contexts:
+    prompt = f"""Analyze if the student correctly uses the word "{vocab_word}" in these contexts.
 
+IMPORTANT: Only flag INCORRECT USAGE IN CONTEXT. Do NOT flag:
+- Meta-linguistic references (talking ABOUT the word, not USING it)
+- Lists of vocabulary being discussed (e.g., "the words like X and Y")
+- Words in quotes as examples
+- Sentences like "We learned the word X" or "What does X mean?"
+
+If a sentence is just mentioning/listing the word without using it in meaningful context, 
+mark it as CORRECT (0 incorrect, 0 correct - skip it entirely).
+
+Examples to IGNORE (not actual usage):
+❌ "We learned the vocabulary words like 'conspicuous' and 'incessant'"
+❌ "What does 'comprise' mean?"
+❌ "The teacher said we should use the word 'nostalgic' in our essays"
+
+Examples to ANALYZE (actual usage):
+✅ "The problem was conspicuous to everyone" (check if correct)
+✅ "We need to comprise new materials" (check if correct - should be "compose")
+
+Sentences to analyze:
 1. {analysis_sentences[0]}
 {f'2. {analysis_sentences[1]}' if len(analysis_sentences) > 1 else ''}
 
