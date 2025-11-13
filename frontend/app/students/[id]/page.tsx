@@ -1,11 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { api, openLibraryApi } from "@/lib/api";
-import { StudentDetailResponse } from "@/lib/types";
 import {
   Card,
   CardContent,
@@ -14,144 +8,60 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { BookDetailModal } from "@/components/ui/book-detail-modal";
+import { StudentDetailResponse } from "@/lib/types";
+import { StudentBookRecommendations } from "@/components/students/StudentBookRecommendations";
+import { MissingWordsSection } from "@/components/students/MissingWordsSection";
+import { MisusedWordsSectionWrapper } from "@/components/students/MisusedWordsSectionWrapper";
 import { cn } from "@/lib/utils";
-import { BookOpen, Loader2 } from "lucide-react";
 
-export default function StudentDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const studentId = params?.id ? parseInt(params.id as string, 10) : null;
-  
-  const [student, setStudent] = useState<StudentDetailResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [notFound, setNotFound] = useState(false);
-  
-  // Dismissal state
-  const [dismissingWordId, setDismissingWordId] = useState<number | null>(null);
-  const [dismissingWords, setDismissingWords] = useState<Set<number>>(new Set());
-  
-  // Book modal state
-  const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
-  const [bookCovers, setBookCovers] = useState<Map<number, string | null>>(new Map());
-  const [loadingCovers, setLoadingCovers] = useState<Set<number>>(new Set());
+async function getStudent(id: number): Promise<StudentDetailResponse | null> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const response = await fetch(`${apiUrl}/api/students/${id}`, {
+    next: { revalidate: 600 }, // Cache for 10 minutes
+  });
 
-  useEffect(() => {
-    if (!studentId || isNaN(studentId)) {
-      setError("Invalid student ID");
-      setLoading(false);
-      return;
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null;
     }
-
-    const fetchStudent = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        setNotFound(false);
-        const data = await api.getStudentById(studentId);
-        setStudent(data);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to load student";
-        setError(errorMessage);
-        
-        // Check if it's a 404 error
-        if (errorMessage.includes("Not Found") || errorMessage.includes("404")) {
-          setNotFound(true);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStudent();
-  }, [studentId]);
-
-  // Fetch book covers when student data loads
-  useEffect(() => {
-    if (student?.book_recommendations) {
-      student.book_recommendations.forEach((book) => {
-        if (!bookCovers.has(book.book_id) && !loadingCovers.has(book.book_id)) {
-          fetchBookCover(book.book_id, book.title, book.author);
-        }
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [student]);
-
-  const fetchBookCover = async (bookId: number, title: string, author: string | null) => {
-    setLoadingCovers((prev) => new Set(prev).add(bookId));
-    try {
-      const details = await openLibraryApi.getBookDetails(title, author);
-      setBookCovers((prev) => {
-        const next = new Map(prev);
-        next.set(bookId, details.coverUrl);
-        return next;
-      });
-    } catch (err) {
-      setBookCovers((prev) => {
-        const next = new Map(prev);
-        next.set(bookId, null);
-        return next;
-      });
-    } finally {
-      setLoadingCovers((prev) => {
-        const next = new Set(prev);
-        next.delete(bookId);
-        return next;
-      });
-    }
-  };
-
-  const handleDismissClick = (wordId: number) => {
-    setDismissingWordId(wordId);
-  };
-
-  const handleDismiss = async (wordId: number, reason: 'addressed' | 'ai_error') => {
-    if (!studentId) return;
-    
-    try {
-      setDismissingWords(prev => new Set(prev).add(wordId));
-      await api.dismissVocabulary(studentId, wordId, reason);
-      
-      // Remove the word from the UI after successful dismissal
-      setStudent(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          misused_words: prev.misused_words.filter(w => w.word_id !== wordId)
-        };
-      });
-      setDismissingWordId(null);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to dismiss";
-      alert(`Error: ${errorMessage}`);
-      setDismissingWords(prev => {
-        const next = new Set(prev);
-        next.delete(wordId);
-        return next;
-      });
-    }
-  };
-
-  const handleCancelDismiss = () => {
-    setDismissingWordId(null);
-  };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-muted-foreground">Loading student data...</div>
-      </div>
-    );
+    throw new Error(`Failed to fetch student: ${response.status} ${response.statusText}`);
   }
 
-  if (notFound || error) {
+  return response.json();
+}
+
+const getMasteryColor = (percent: number) => {
+  if (percent < 50) {
+    return "text-red-600 dark:text-red-400";
+  } else if (percent < 75) {
+    return "text-yellow-600 dark:text-yellow-400";
+  } else {
+    return "text-green-600 dark:text-green-400";
+  }
+};
+
+export default async function StudentDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const studentId = parseInt(id, 10);
+
+  if (isNaN(studentId)) {
+    notFound();
+  }
+
+  let student: StudentDetailResponse | null = null;
+  let error: string | null = null;
+
+  try {
+    student = await getStudent(studentId);
+  } catch (err) {
+    error = err instanceof Error ? err.message : "Failed to load student";
+  }
+
+  if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
         <nav className="mb-4" aria-label="Breadcrumb">
@@ -168,24 +78,13 @@ export default function StudentDetailPage() {
               </Link>
             </li>
             <li>/</li>
-            <li className="text-foreground">Student Not Found</li>
+            <li className="text-foreground">Error</li>
           </ol>
         </nav>
-        
         <div className="text-red-600 dark:text-red-400 mb-4">
-          {notFound ? (
-            <div>
-              <h1 className="text-2xl font-bold mb-2">Student Not Found</h1>
-              <p>Sorry, we couldn't find the student you're looking for.</p>
-            </div>
-          ) : (
-            <div>
-              <h1 className="text-2xl font-bold mb-2">Error</h1>
-              <p>{error}</p>
-            </div>
-          )}
+          <h1 className="text-2xl font-bold mb-2">Error</h1>
+          <p>{error}</p>
         </div>
-        
         <Link
           href="/students"
           className="inline-block px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
@@ -197,32 +96,8 @@ export default function StudentDetailPage() {
   }
 
   if (!student) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-muted-foreground">No student data available.</div>
-      </div>
-    );
+    notFound();
   }
-
-  const getMasteryColor = (percent: number) => {
-    if (percent < 50) {
-      return "text-red-600 dark:text-red-400";
-    } else if (percent < 75) {
-      return "text-yellow-600 dark:text-yellow-400";
-    } else {
-      return "text-green-600 dark:text-green-400";
-    }
-  };
-
-  const getMatchScoreColor = (score: number) => {
-    if (score >= 0.8) {
-      return "text-green-600 dark:text-green-400";
-    } else if (score >= 0.6) {
-      return "text-yellow-600 dark:text-yellow-400";
-    } else {
-      return "text-orange-600 dark:text-orange-400";
-    }
-  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -262,7 +137,7 @@ export default function StudentDetailPage() {
                 <p>Assigned Grade: {student.assigned_grade}</p>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Grade Mastery</span>
@@ -279,246 +154,26 @@ export default function StudentDetailPage() {
         </Card>
 
         {/* Section 2: Book Recommendations */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Book Recommendations</CardTitle>
-            <CardDescription>
-              These books will challenge {student.name} with new vocabulary words while reinforcing words they already know.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {student.book_recommendations.length === 0 ? (
-              <p className="text-muted-foreground">No book recommendations available.</p>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-3">
-                {student.book_recommendations.map((book) => {
-                  const coverUrl = bookCovers.get(book.book_id);
-                  const isLoadingCover = loadingCovers.has(book.book_id);
-                  
-                  return (
-                    <Card
-                      key={book.book_id}
-                      className="border-2 cursor-pointer hover:border-primary transition-colors"
-                      onClick={() => setSelectedBookId(book.book_id)}
-                    >
-                      <CardHeader>
-                        {/* Book Cover */}
-                        <div className="mb-3 flex justify-center">
-                          {isLoadingCover ? (
-                            <div className="w-32 h-48 bg-muted rounded flex items-center justify-center">
-                              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                            </div>
-                          ) : coverUrl ? (
-                            <div className="relative w-32 h-48 rounded overflow-hidden shadow-md">
-                              <Image
-                                src={coverUrl}
-                                alt={`Cover of ${book.title}`}
-                                fill
-                                className="object-cover"
-                                unoptimized
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-32 h-48 bg-muted rounded flex flex-col items-center justify-center p-2 shadow-md">
-                              <BookOpen className="h-10 w-10 text-muted-foreground mb-1" />
-                              <p className="text-xs text-muted-foreground text-center font-medium line-clamp-2">
-                                {book.title}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg mb-1">{book.title}</CardTitle>
-                            {book.author && (
-                              <CardDescription className="text-xs">
-                                by {book.author}
-                              </CardDescription>
-                            )}
-                          </div>
-                          <div className="ml-2 text-right">
-                            <div className={cn("text-sm font-semibold", getMatchScoreColor(book.match_score))}>
-                              {(book.match_score * 100).toFixed(0)}% match
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {book.reading_level && (
-                          <p className="text-xs text-muted-foreground">
-                            Reading Level: {book.reading_level.toFixed(1)}
-                          </p>
-                        )}
-                        <div className="text-sm">
-                          <p className="font-medium">
-                            Known: {(book.known_words_percent * 100).toFixed(1)}% | New: {((1 - book.known_words_percent) * 100).toFixed(1)}% ({book.new_words_count} words)
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <StudentBookRecommendations
+          books={student.book_recommendations}
+          studentName={student.name}
+        />
 
         {/* Section 3: Vocabulary Progress */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Vocabulary Progress</CardTitle>
-            <CardDescription>
-              Grade-level vocabulary mastery and missing words
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">
-                  Mastered {student.vocab_mastery.words_mastered} of {student.vocab_mastery.total_grade_level_words} {student.assigned_grade}th grade words ({student.vocab_mastery.mastery_percent.toFixed(1)}%)
-                </span>
-              </div>
-              <Progress value={student.vocab_mastery.mastery_percent} className="h-3" />
-            </div>
-
-            {student.missing_words.length > 0 ? (
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center justify-between w-full text-left text-sm font-medium hover:text-foreground transition-colors">
-                  <span>{student.missing_words.length} missing words</span>
-                  <span className="text-muted-foreground">▼</span>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-2">
-                  <div className="border rounded-md p-4 bg-muted/50">
-                    <div className="flex flex-wrap gap-2">
-                      {student.missing_words.map((word, index) => (
-                        <span
-                          key={index}
-                          className="inline-block px-2 py-1 text-xs bg-background border rounded-md"
-                        >
-                          {word}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                All grade-level vocabulary words have been mastered! 🎉
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        <MissingWordsSection
+          totalWords={student.vocab_mastery.total_grade_level_words}
+          wordsMastered={student.vocab_mastery.words_mastered}
+          masteryPercent={student.vocab_mastery.mastery_percent}
+          assignedGrade={student.assigned_grade}
+          missingWords={student.missing_words}
+        />
 
         {/* Section 4: Vocabulary Issues */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Words Used Incorrectly</CardTitle>
-            <CardDescription>
-              Vocabulary words that need attention
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {student.misused_words.length === 0 ? (
-              <p className="text-muted-foreground">No misused words found. Great job! 🎉</p>
-            ) : (
-              <div className="space-y-4">
-                {student.misused_words.map((misused, index) => {
-                  const isBeingDismissed = dismissingWords.has(misused.word_id);
-                  const showDismissButtons = dismissingWordId === misused.word_id;
-                  
-                  return (
-                    <Card key={index} className="border-orange-200 dark:border-orange-900 relative">
-                      <CardHeader className="pr-16">
-                        <CardTitle className="text-lg">{misused.word}</CardTitle>
-                        <CardDescription>
-                          Correct: {misused.correct_count} | Incorrect: {misused.incorrect_count}
-                        </CardDescription>
-                        
-                        {/* Dismiss UI in top-right */}
-                        <div className="absolute top-4 right-4">
-                          {!showDismissButtons && !isBeingDismissed && (
-                            <button
-                              onClick={() => handleDismissClick(misused.word_id)}
-                              className="text-muted-foreground hover:text-foreground transition-colors p-1"
-                              aria-label="Dismiss this vocabulary issue"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                              </svg>
-                            </button>
-                          )}
-                          
-                          {showDismissButtons && !isBeingDismissed && (
-                            <div className="flex gap-1 animate-in fade-in slide-in-from-left-2 duration-200">
-                              <button
-                                onClick={() => handleDismiss(misused.word_id, 'addressed')}
-                                className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-                                title="I've corrected the student"
-                              >
-                                Addressed
-                              </button>
-                              <button
-                                onClick={() => handleDismiss(misused.word_id, 'ai_error')}
-                                className="px-2 py-1 text-xs bg-orange-600 hover:bg-orange-700 text-white rounded transition-colors"
-                                title="This is an AI detection error"
-                              >
-                                AI Error
-                              </button>
-                            </div>
-                          )}
-                          
-                          {isBeingDismissed && (
-                            <div className="text-xs text-muted-foreground">Dismissing...</div>
-                          )}
-                        </div>
-                      </CardHeader>
-                      {misused.example && (
-                        <CardContent>
-                          <p className="text-sm">
-                            <span className="text-muted-foreground">Example: </span>
-                            <span className="italic">
-                              {(() => {
-                                const regex = new RegExp(`\\b${misused.word}\\b`, 'gi');
-                                const parts = misused.example.split(regex);
-                                const matches = misused.example.match(regex) || [];
-                                const result = [];
-                                for (let i = 0; i < parts.length; i++) {
-                                  result.push(<span key={`part-${i}`}>{parts[i]}</span>);
-                                  if (i < matches.length) {
-                                    result.push(
-                                      <span key={`match-${i}`} className="font-bold text-orange-600 dark:text-orange-400 underline">
-                                        {matches[i]}
-                                      </span>
-                                    );
-                                  }
-                                }
-                                return result;
-                              })()}
-                            </span>
-                          </p>
-                        </CardContent>
-                      )}
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Book Detail Modal */}
-      {selectedBookId && student.book_recommendations.find((b) => b.book_id === selectedBookId) && (
-        <BookDetailModal
-          book={student.book_recommendations.find((b) => b.book_id === selectedBookId)!}
-          open={selectedBookId !== null}
-          onOpenChange={(open) => !open && setSelectedBookId(null)}
+        <MisusedWordsSectionWrapper
+          misusedWords={student.misused_words}
+          studentId={student.id}
         />
-      )}
+      </div>
     </div>
   );
 }
-

@@ -1,174 +1,46 @@
-"use client";
-
-import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
 import { StudentListResponse } from "@/lib/types";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { cn } from "@/lib/utils";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { StudentsTable } from "@/components/students/StudentsTable";
+import { ErrorDisplay } from "@/components/shared/ErrorDisplay";
 
-type SortDirection = "asc" | "desc";
+async function getStudents(): Promise<StudentListResponse[]> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const response = await fetch(`${apiUrl}/api/students`, {
+    next: { revalidate: 300 }, // Cache for 5 minutes
+  });
 
-export default function StudentsPage() {
-  const router = useRouter();
-  const [students, setStudents] = useState<StudentListResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc"); // Default: highest first
-
-  useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await api.getStudents();
-        setStudents(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load students");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStudents();
-  }, []);
-
-  const getMasteryColor = (percent: number) => {
-    if (percent < 50) {
-      return "text-red-600 dark:text-red-400";
-    } else if (percent < 75) {
-      return "text-yellow-600 dark:text-yellow-400";
-    } else {
-      return "text-green-600 dark:text-green-400";
+  if (!response.ok) {
+    if (response.status === 404) {
+      return [];
     }
-  };
-
-  const getMasteryBgColor = (percent: number) => {
-    if (percent < 50) {
-      return "bg-red-50 dark:bg-red-950/20";
-    } else if (percent < 75) {
-      return "bg-yellow-50 dark:bg-yellow-950/20";
-    } else {
-      return "bg-green-50 dark:bg-green-950/20";
-    }
-  };
-
-  const handleRowClick = (studentId: number) => {
-    router.push(`/students/${studentId}`);
-  };
-
-  const handleSortClick = () => {
-    setSortDirection((prev) => (prev === "desc" ? "asc" : "desc"));
-  };
-
-  // Sort students based on current sort direction
-  const sortedStudents = useMemo(() => {
-    const sorted = [...students];
-    sorted.sort((a, b) => {
-      if (sortDirection === "desc") {
-        return b.vocab_mastery_percent - a.vocab_mastery_percent;
-      } else {
-        return a.vocab_mastery_percent - b.vocab_mastery_percent;
-      }
-    });
-    return sorted;
-  }, [students, sortDirection]);
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-4">Students</h1>
-        <div className="text-muted-foreground">Loading students...</div>
-      </div>
-    );
+    throw new Error(`Failed to fetch students: ${response.status} ${response.statusText}`);
   }
 
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-4">Students</h1>
-        <div className="text-red-600 dark:text-red-400 mb-4">
-          Error: {error}
-        </div>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+  return response.json();
+}
 
-  if (students.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-4">Students</h1>
-        <div className="text-muted-foreground">
-          No students found. Please add students to get started.
-        </div>
-      </div>
-    );
+export default async function StudentsPage() {
+  let students: StudentListResponse[] = [];
+  let error: string | null = null;
+
+  try {
+    students = await getStudents();
+  } catch (err) {
+    error = err instanceof Error ? err.message : "Failed to load students";
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-4">Students</h1>
-      <div className="rounded-md border overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Reading Level</TableHead>
-              <TableHead>
-                <button
-                  onClick={handleSortClick}
-                  className="flex items-center gap-2 hover:text-foreground transition-colors"
-                >
-                  Grade Mastery %
-                  {sortDirection === "desc" ? (
-                    <ArrowDown className="h-4 w-4" />
-                  ) : (
-                    <ArrowUp className="h-4 w-4" />
-                  )}
-                </button>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedStudents.map((student) => (
-              <TableRow
-                key={student.id}
-                onClick={() => handleRowClick(student.id)}
-                className="cursor-pointer hover:bg-muted/50"
-              >
-                <TableCell className="font-medium">{student.name}</TableCell>
-                <TableCell>{student.reading_level.toFixed(1)}</TableCell>
-                <TableCell>
-                  <div
-                    className={cn(
-                      "inline-flex items-center px-2 py-1 rounded-md font-medium",
-                      getMasteryBgColor(student.vocab_mastery_percent),
-                      getMasteryColor(student.vocab_mastery_percent)
-                    )}
-                  >
-                    {student.vocab_mastery_percent.toFixed(1)}%
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      
+      {error ? (
+        <ErrorDisplay error={error} />
+      ) : students.length === 0 ? (
+        <div className="text-muted-foreground">
+          No students found. Please add students to get started.
+        </div>
+      ) : (
+        <StudentsTable students={students} />
+      )}
     </div>
   );
 }
-

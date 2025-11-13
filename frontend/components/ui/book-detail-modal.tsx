@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { BookRecommendationResponse, ClassRecommendationResponse } from "@/lib/types";
-import { openLibraryApi } from "@/lib/api";
+import { getBookDetails } from "@/lib/actions";
 import { BookOpen, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -20,6 +20,12 @@ interface BookDetailModalProps {
   onOpenChange: (open: boolean) => void;
   isClassView?: boolean;
   totalStudents?: number;
+  preloadedCoverUrl?: string | null;
+  preloadedBookDetails?: {
+    coverUrl: string | null;
+    summary: string | null;
+    pageCount: number | null;
+  } | null;
 }
 
 export function BookDetailModal({
@@ -28,26 +34,32 @@ export function BookDetailModal({
   onOpenChange,
   isClassView = false,
   totalStudents,
+  preloadedCoverUrl,
+  preloadedBookDetails,
 }: BookDetailModalProps) {
   const [loading, setLoading] = useState(false);
   const [bookDetails, setBookDetails] = useState<{
     coverUrl: string | null;
     summary: string | null;
     pageCount: number | null;
-  } | null>(null);
+  } | null>(preloadedBookDetails || null);
   const [error, setError] = useState<string | null>(null);
 
+  // Use preloaded cover URL if available, otherwise use from bookDetails
+  const coverUrl = preloadedCoverUrl ?? bookDetails?.coverUrl ?? null;
+
   useEffect(() => {
-    if (open && !bookDetails) {
+    // Only fetch if we don't have preloaded data and modal is open
+    if (open && !preloadedBookDetails && !bookDetails) {
       fetchBookDetails();
     }
-  }, [open]);
+  }, [open, preloadedBookDetails]);
 
   const fetchBookDetails = async () => {
     setLoading(true);
     setError(null);
     try {
-      const details = await openLibraryApi.getBookDetails(book.title, book.author);
+      const details = await getBookDetails(book.title, book.author);
       setBookDetails(details);
     } catch (err) {
       setError("Failed to load book details");
@@ -84,18 +96,19 @@ export function BookDetailModal({
         <div className="space-y-4 mt-4">
           {/* Book Cover */}
           <div className="flex justify-center">
-            {loading ? (
+            {loading && !coverUrl ? (
               <div className="w-48 h-72 bg-muted rounded-lg flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
-            ) : bookDetails?.coverUrl ? (
+            ) : coverUrl ? (
               <div className="relative w-48 h-72 rounded-lg overflow-hidden shadow-lg">
                 <Image
-                  src={bookDetails.coverUrl}
+                  src={coverUrl}
                   alt={`Cover of ${book.title}`}
                   fill
                   className="object-cover"
-                  unoptimized
+                  sizes="192px"
+                  priority
                 />
               </div>
             ) : (
