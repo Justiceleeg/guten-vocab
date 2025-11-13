@@ -4,11 +4,12 @@
 TBD - created by archiving change implement-student-view. Update Purpose after archive.
 ## Requirements
 ### Requirement: Student List View
-The system SHALL provide a user interface that displays a list of all students with basic information including vocabulary mastery percentage, and SHALL allow navigation to individual student detail pages. The table SHALL be sortable by grade mastery percentage.
+The system SHALL provide a user interface that displays a list of all students with basic information including vocabulary mastery percentage, and SHALL allow navigation to individual student detail pages. The table SHALL be sortable by grade mastery percentage. The system SHALL use Next.js Server Components to fetch and render data, with automatic caching to improve performance.
 
 #### Scenario: Display student list
 - **WHEN** a teacher navigates to `/students`
-- **THEN** the system fetches all students from the API (`GET /api/students`)
+- **THEN** the system fetches all students from the API (`GET /api/students`) using Next.js Server Component
+- **AND** caches the API response for 5 minutes using Next.js fetch caching
 - **AND** displays students in a table with columns:
   - Student name
   - Reading level
@@ -17,31 +18,32 @@ The system SHALL provide a user interface that displays a list of all students w
   - Low mastery (<50%): Red/orange color
   - Medium mastery (50-75%): Yellow color
   - High mastery (>75%): Green color
-- **AND** makes table rows clickable to navigate to `/students/[id]`
-- **AND** shows loading state while fetching data
+- **AND** makes table rows clickable to navigate to `/students/[id]` via client component
+- **AND** shows loading state during initial server-side rendering if needed
 - **AND** shows error state if API call fails
 - **AND** shows empty state if no students found
 
 #### Scenario: Sortable table by mastery percentage
 - **WHEN** a teacher clicks on the "Grade Mastery %" column header
-- **THEN** the table sorts students by mastery percentage
+- **THEN** the table sorts students by mastery percentage using client-side sorting
 - **AND** default sort order is descending (highest percentage first)
 - **AND** clicking the header toggles between ascending and descending order
 - **AND** a visual indicator (arrow icon) shows the current sort direction
-- **AND** the sort state persists while navigating between pages
+- **AND** the sort state is managed by a client component
 
 ### Requirement: Student Detail View
-The system SHALL provide a detailed view of an individual student's vocabulary profile, book recommendations, and vocabulary issues, organized into four distinct sections. Book recommendations SHALL display cover images and SHALL be clickable to show detailed book information in a modal.
+The system SHALL provide a detailed view of an individual student's vocabulary profile, book recommendations, and vocabulary issues, organized into four distinct sections. Book recommendations SHALL display cover images and SHALL be clickable to show detailed book information in a modal. The system SHALL use Next.js Server Components to fetch and render data, with automatic caching to improve performance.
 
 #### Scenario: Display student detail page
 - **WHEN** a teacher navigates to `/students/[id]` with a valid student ID
-- **THEN** the system fetches student data from the API (`GET /api/students/{id}`)
+- **THEN** the system fetches student data from the API (`GET /api/students/{id}`) using Next.js Server Component
+- **AND** caches the API response for 10 minutes using Next.js fetch caching
 - **AND** displays four sections:
   1. Student Overview
   2. Book Recommendations
   3. Vocabulary Progress
   4. Vocabulary Issues
-- **AND** shows loading state while fetching data
+- **AND** shows loading state during initial server-side rendering if needed
 - **AND** shows error state if API call fails
 - **AND** shows 404 error page if student not found
 
@@ -60,18 +62,18 @@ The system SHALL provide a detailed view of an individual student's vocabulary p
 - **WHEN** viewing a student detail page
 - **THEN** the system displays up to 3 recommended books as cards
 - **AND** each card shows:
-  - Book cover image (fetched from Open Library API, with fallback placeholder if unavailable)
+  - Book cover image (fetched from Open Library API client-side, with fallback placeholder if unavailable)
   - Book title and author
   - Match score (displayed as percentage)
   - "Known: X% | New: Y% (Z words)" text
   - Brief explanation: "This book will challenge you with Z new vocabulary words while reinforcing words you already know."
 - **AND** cards are visually appealing with proper spacing
 - **AND** shows empty state if no recommendations available
-- **AND** cards are clickable to open a detailed book information modal
+- **AND** cards are clickable to open a detailed book information modal via client component
 
 #### Scenario: Book detail modal
 - **WHEN** a teacher clicks on a book recommendation card
-- **THEN** the system opens a modal dialog displaying detailed book information
+- **THEN** the system opens a modal dialog displaying detailed book information via client component
 - **AND** the modal shows:
   - Book cover image (large size)
   - Book title and author
@@ -107,13 +109,14 @@ The system SHALL provide a detailed view of an individual student's vocabulary p
   - Misused word highlighted in the example sentence
 - **AND** uses card or alert component for each misused word
 - **AND** shows empty state if no words are misused
+- **AND** provides dismiss functionality via client component for each misused word
 
 ### Requirement: Navigation and Breadcrumbs
 The system SHALL provide clear navigation between student list and detail views, and SHALL display breadcrumbs on the student detail page.
 
 #### Scenario: Navigate from list to detail
 - **WHEN** a teacher clicks on a student row in the student list
-- **THEN** the system navigates to `/students/[id]` where `[id]` is the student's ID
+- **THEN** the system navigates to `/students/[id]` where `[id]` is the student's ID via client component
 - **AND** the student detail page loads and displays the selected student's data
 
 #### Scenario: Display breadcrumbs on detail page
@@ -128,16 +131,15 @@ The system SHALL provide clear navigation between student list and detail views,
 The system SHALL display appropriate loading states while fetching data and SHALL handle errors gracefully with user-friendly messages.
 
 #### Scenario: Show loading state
-- **WHEN** fetching student data from the API
-- **THEN** the system displays loading indicators:
-  - Skeleton loaders for table rows (on list page)
-  - Skeleton loaders for detail sections (on detail page)
-- **AND** loading indicators match the structure of the content being loaded
+- **WHEN** fetching student data from the API during server-side rendering
+- **THEN** the system may display loading indicators during initial render
+- **AND** subsequent page loads benefit from Next.js fetch cache (faster rendering)
+- **AND** client-side interactions (modals, sorting) show appropriate loading states
 
 #### Scenario: Handle API errors
 - **WHEN** an API call fails (network error, server error, etc.)
 - **THEN** the system displays a user-friendly error message
-- **AND** provides a retry button to attempt the API call again
+- **AND** provides a retry button to attempt the API call again via client component
 - **AND** uses appropriate error styling (e.g., alert component)
 
 #### Scenario: Handle 404 errors
@@ -180,18 +182,20 @@ The system SHALL ensure student list and detail pages are responsive and work pr
 - **AND** modals are properly sized and centered on all screen sizes
 
 ### Requirement: Class Overview Page
-The system SHALL provide a class-wide overview showing statistics, book recommendations, vocabulary gaps, and common mistakes. Book recommendations SHALL display cover images and SHALL be clickable to show detailed book information. Vocabulary words in tables SHALL be clickable to show dictionary information.
+The system SHALL provide a class-wide overview showing statistics, book recommendations, vocabulary gaps, and common mistakes. Book recommendations SHALL display cover images and SHALL be clickable to show detailed book information in a modal. Vocabulary words in tables SHALL be clickable to show dictionary information. The system SHALL use Next.js Server Components to fetch and render data, with automatic caching to improve performance.
 
 #### Scenario: Display class overview
 - **WHEN** a teacher navigates to `/class`
-- **THEN** the system fetches class statistics from the API (`GET /api/class/stats`)
-- **AND** fetches class recommendations from the API (`GET /api/class/recommendations`)
+- **THEN** the system fetches class statistics from the API (`GET /api/class/stats`) using Next.js Server Component
+- **AND** caches the API response for 5 minutes using Next.js fetch caching
+- **AND** fetches class recommendations from the API (`GET /api/class/recommendations`) using Next.js Server Component
+- **AND** caches the API response for 15 minutes using Next.js fetch caching
 - **AND** displays four sections:
   1. Class Statistics
   2. Class-Wide Book Recommendations
   3. Vocabulary Gaps
   4. Common Mistakes
-- **AND** shows loading states while fetching data
+- **AND** shows loading states during initial server-side rendering if needed
 - **AND** shows error states if API calls fail
 - **AND** shows empty states if no data available
 
@@ -199,13 +203,13 @@ The system SHALL provide a class-wide overview showing statistics, book recommen
 - **WHEN** viewing the class overview page
 - **THEN** the system displays up to 2 recommended books as prominent cards
 - **AND** each card shows:
-  - Book cover image (fetched from Open Library API, with fallback placeholder if unavailable)
+  - Book cover image (fetched from Open Library API client-side, with fallback placeholder if unavailable)
   - Book title and author
   - "Recommended for X of Y students" text
   - Average match score (as percentage with progress bar)
   - Brief explanation of why the book is good for the class
 - **AND** cards are visually appealing with hover effects
-- **AND** cards are clickable to open a detailed book information modal
+- **AND** cards are clickable to open a detailed book information modal via client component
 - **AND** shows empty state if no recommendations available
 
 #### Scenario: Vocabulary gaps table
@@ -215,7 +219,7 @@ The system SHALL provide a class-wide overview showing statistics, book recommen
   - Word
   - Total Students (number of students missing the word)
 - **AND** words are sorted by number of students missing (descending)
-- **AND** table rows are clickable to open a word detail modal
+- **AND** table rows are clickable to open a word detail modal via client component
 - **AND** uses a unified `VocabularyTableCard` component for consistent styling
 - **AND** shows empty state if no vocabulary gaps detected
 
@@ -227,13 +231,13 @@ The system SHALL provide a class-wide overview showing statistics, book recommen
   - Total Misuses
   - Students Affected (if available)
 - **AND** words are sorted by misuse count (descending)
-- **AND** table rows are clickable to open a word detail modal
+- **AND** table rows are clickable to open a word detail modal via client component
 - **AND** uses a unified `VocabularyTableCard` component for consistent styling (same as vocabulary gaps)
 - **AND** shows empty state if no common mistakes found
 
 #### Scenario: Word detail modal
 - **WHEN** a teacher clicks on a word row in the vocabulary gaps or common mistakes table
-- **THEN** the system opens a modal dialog displaying dictionary information for the word
+- **THEN** the system opens a modal dialog displaying dictionary information for the word via client component
 - **AND** the modal shows:
   - Word definition (from DictionaryAPI.dev)
   - Usage examples
@@ -356,17 +360,15 @@ The system SHALL use appropriate chart components to visualize class-wide data, 
 The system SHALL display appropriate loading states while fetching class data and SHALL handle errors gracefully with user-friendly messages and recovery options.
 
 #### Scenario: Show loading state
-- **WHEN** fetching class statistics or recommendations from the API
-- **THEN** the system displays loading indicators:
-  - Skeleton loaders for statistics cards
-  - Skeleton loaders for book recommendation cards
-  - Loading spinner for charts
-- **AND** loading indicators match the structure of the content being loaded
+- **WHEN** fetching class statistics or recommendations from the API during server-side rendering
+- **THEN** the system may display loading indicators during initial render
+- **AND** subsequent page loads benefit from Next.js fetch cache (faster rendering)
+- **AND** client-side interactions (modals, retry buttons) show appropriate loading states
 
 #### Scenario: Handle API errors
 - **WHEN** an API call fails (network error, server error, etc.)
 - **THEN** the system displays a user-friendly error message
-- **AND** provides a retry button to attempt the API call again
+- **AND** provides a retry button to attempt the API call again via client component
 - **AND** uses appropriate error styling (e.g., alert component)
 - **AND** allows partial page rendering if only one API call fails (e.g., stats load but recommendations fail)
 
@@ -416,4 +418,26 @@ The system SHALL provide tooltips, explanations, and contextual help to make cla
   - Vocabulary gaps: "Focus instruction on these words to help the most students"
   - Common mistakes: "Review these words with the class to address systematic misunderstandings"
 - **AND** explanations are concise and action-oriented
+
+### Requirement: Next.js Server Components and Fetch Caching
+The system SHALL use Next.js Server Components to fetch and render data server-side, and SHALL cache API responses using Next.js fetch caching to improve performance.
+
+#### Scenario: Server-side rendering with caching
+- **WHEN** a teacher navigates to any page in the application
+- **THEN** the system renders the page on the server using Next.js Server Components
+- **AND** fetches data from the API using native `fetch()` with `next.revalidate` option
+- **AND** caches API responses according to configured revalidation times:
+  - Student list: 5 minutes
+  - Student detail: 10 minutes
+  - Class statistics: 5 minutes
+  - Class recommendations: 15 minutes
+- **AND** subsequent page loads within the cache period use cached data (faster rendering)
+- **AND** cache automatically revalidates after the configured time period
+
+#### Scenario: Client components for interactivity
+- **WHEN** a page requires interactive features (sorting, modals, buttons)
+- **THEN** the system uses small client components for only the interactive parts
+- **AND** most of the page remains as Server Component (better performance)
+- **AND** client components receive data as props from Server Components
+- **AND** interactive features work correctly with server-rendered data
 
