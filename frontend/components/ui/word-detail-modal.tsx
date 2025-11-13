@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -23,13 +23,9 @@ export function WordDetailModal({ word, open, onOpenChange }: WordDetailModalPro
   const [wordData, setWordData] = useState<WordDefinition | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open && word) {
-      fetchWordDefinition();
-    }
-  }, [open, word]);
-
-  const fetchWordDefinition = async () => {
+  const fetchWordDefinition = useCallback(async () => {
+    if (!word) return;
+    
     setLoading(true);
     setError(null);
     setWordData(null);
@@ -46,25 +42,36 @@ export function WordDetailModal({ word, open, onOpenChange }: WordDetailModalPro
     } finally {
       setLoading(false);
     }
-  };
+  }, [word]);
+
+  useEffect(() => {
+    if (open && word) {
+      fetchWordDefinition();
+    } else if (!open) {
+      // Reset state when modal closes to prevent stale data
+      setWordData(null);
+      setError(null);
+      setLoading(false);
+    }
+  }, [open, word, fetchWordDefinition]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="min-h-[4rem]">
           <DialogTitle className="text-2xl capitalize">{word}</DialogTitle>
-          {wordData?.phonetic && (
-            <DialogDescription className="text-base">{wordData.phonetic}</DialogDescription>
-          )}
+          <DialogDescription className="text-base min-h-[1.5rem]">
+            {wordData?.phonetic || "\u00A0"}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 mt-4">
+        <div className="space-y-6 mt-4 min-h-[200px]">
           {loading ? (
-            <div className="flex items-center justify-center py-8">
+            <div className="flex items-center justify-center py-8 min-h-[200px]">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : error ? (
-            <div className="text-center py-8">
+            <div className="text-center py-8 min-h-[200px] flex flex-col items-center justify-center">
               <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-muted-foreground">{error}</p>
             </div>

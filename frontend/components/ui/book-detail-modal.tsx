@@ -69,18 +69,6 @@ export function BookDetailModal({
     }
   };
 
-  const getMatchScoreColor = (score: number) => {
-    if (score >= 0.8) {
-      return "text-green-600 dark:text-green-400";
-    } else if (score >= 0.6) {
-      return "text-yellow-600 dark:text-yellow-400";
-    } else {
-      return "text-orange-600 dark:text-orange-400";
-    }
-  };
-
-  const matchScore = "match_score" in book ? book.match_score : book.avg_match_score;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -142,20 +130,6 @@ export function BookDetailModal({
             )}
           </div>
 
-          {/* Match Score */}
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Match Score</p>
-            <div className="flex items-center gap-2">
-              <span className={cn("text-lg font-semibold", getMatchScoreColor(matchScore))}>
-                {(matchScore * 100).toFixed(0)}%
-              </span>
-              {isClassView && "students_recommended_count" in book && (
-                <span className="text-sm text-muted-foreground">
-                  (Recommended for {book.students_recommended_count} of {totalStudents || "?"} students)
-                </span>
-              )}
-            </div>
-          </div>
 
           {/* Vocabulary Stats */}
           {"known_words_percent" in book && (

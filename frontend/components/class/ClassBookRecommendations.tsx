@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { BookDetailModal } from "@/components/ui/book-detail-modal";
 import { ClassRecommendationResponse, ClassStatsResponse } from "@/lib/types";
 import { getBookDetails } from "@/lib/actions";
@@ -150,13 +149,6 @@ export function ClassBookRecommendations({
                     Recommended for {book.students_recommended_count} of{" "}
                     {totalStudents || "?"} students
                   </span>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Average Match Score</span>
-                    <span className="font-semibold">{(book.avg_match_score * 100).toFixed(0)}%</span>
-                  </div>
-                  <Progress value={book.avg_match_score * 100} className="h-2" />
                 </div>
                 <p className="text-sm text-muted-foreground">
                   This book is recommended for most students in your class, offering appropriate

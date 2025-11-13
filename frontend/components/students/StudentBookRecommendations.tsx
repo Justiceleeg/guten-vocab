@@ -20,16 +20,6 @@ interface StudentBookRecommendationsProps {
   studentName: string;
 }
 
-const getMatchScoreColor = (score: number) => {
-  if (score >= 0.8) {
-    return "text-green-600 dark:text-green-400";
-  } else if (score >= 0.6) {
-    return "text-yellow-600 dark:text-yellow-400";
-  } else {
-    return "text-orange-600 dark:text-orange-400";
-  }
-};
-
 export function StudentBookRecommendations({
   books,
   studentName,
@@ -163,20 +153,13 @@ export function StudentBookRecommendations({
                       )}
                     </div>
 
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg mb-1">{book.title}</CardTitle>
-                        {book.author && (
-                          <CardDescription className="text-xs">
-                            by {book.author}
-                          </CardDescription>
-                        )}
-                      </div>
-                      <div className="ml-2 text-right">
-                        <div className={cn("text-sm font-semibold", getMatchScoreColor(book.match_score))}>
-                          {(book.match_score * 100).toFixed(0)}% match
-                        </div>
-                      </div>
+                    <div className="mb-2">
+                      <CardTitle className="text-lg mb-1">{book.title}</CardTitle>
+                      {book.author && (
+                        <CardDescription className="text-xs">
+                          by {book.author}
+                        </CardDescription>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">

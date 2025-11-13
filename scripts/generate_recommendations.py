@@ -207,23 +207,31 @@ def calculate_match_score(
         penalty = 0
     
     # Reward higher percentage of known words (for comprehension)
-    # Optimal range: 50-75% known
+    # Optimal range: 50-75% known, with more granular scoring
+    # Use a continuous function to create more differentiation
     if 0.50 <= known_percent <= 0.75:
-        known_score = 1.0  # Perfect range
+        # Optimal range: score based on how close to 62.5% (middle of optimal range)
+        optimal_target = 0.625
+        distance_from_optimal = abs(known_percent - optimal_target)
+        # Score decreases as we move away from optimal, but stays high in range
+        known_score = 1.0 - (distance_from_optimal / 0.125) * 0.15  # Scale from 1.0 to 0.85
     elif known_percent < 0.50:
         # Below optimal, but still acceptable (40-50%)
-        known_score = known_percent / 0.50  # Scale from 0.8 to 1.0
+        known_score = 0.7 + (known_percent - 0.40) / 0.10 * 0.15  # Scale from 0.7 to 0.85
     else:
         # Above optimal but acceptable (75-85%)
         known_score = 1.0 - ((known_percent - 0.75) / 0.10) * 0.2  # Scale from 1.0 to 0.8
     
     # Reward higher count of new words (for vocabulary expansion)
-    # Normalize new word count (assume max ~50 new words is excellent)
-    # Books with 10+ new words are good, 20+ is excellent
-    if new_words_count >= 20:
+    # Use a more gradual scaling to create differentiation
+    # Optimal: 20-40 new words, with diminishing returns beyond 40
+    if new_words_count >= 40:
         new_words_score = 1.0
+    elif new_words_count >= 20:
+        # Scale from 0.85 to 1.0 for 20-40 new words
+        new_words_score = 0.85 + (new_words_count - 20) / 20 * 0.15
     elif new_words_count >= 10:
-        new_words_score = 0.7 + (new_words_count - 10) / 10 * 0.3  # Scale from 0.7 to 1.0
+        new_words_score = 0.7 + (new_words_count - 10) / 10 * 0.15  # Scale from 0.7 to 0.85
     elif new_words_count >= 5:
         new_words_score = 0.4 + (new_words_count - 5) / 5 * 0.3  # Scale from 0.4 to 0.7
     else:
